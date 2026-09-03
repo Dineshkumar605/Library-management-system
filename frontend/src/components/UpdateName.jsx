@@ -1,95 +1,80 @@
 import React, { useState } from "react";
-import { Card, Container, Form, Button, Alert } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Form, Alert } from "react-bootstrap";
+import { HiPencil } from "react-icons/hi";
+import { apiGet, apiPut } from "../api";
 
 function UpdateName() {
   const [data, setData] = useState(null);
   const [email, setEmail] = useState("");
   const [newName, setNewName] = useState("");
+  const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const fetchUserData = () => {
-    if (!email) {
-      alert("Please enter email");
-      return;
-    }
-    fetch(`http://localhost:8080/LMS/fetch-user-and-issued-library-card/${email}`)
-      .then((response) => response.json())
-      .then((data) => {
-        setData(data);
-        setNewName(data.name);
-      })
-      .catch((error) => console.log(error));
+  const fetchUserData = async () => {
+    if (!email.trim()) { setErrors({ email: "Email is required" }); return; }
+    setLoading(true);
+    const { data: result, error } = await apiGet(`/fetch-user-and-issued-library-card/${email}`);
+    if (error) { setMessage(error); }
+    else { setData(result); setNewName(result.name); setMessage(""); }
+    setLoading(false);
   };
 
-  const updateUserName = () => {
-    if (!email || !newName) {
-      alert("Please enter both email and new name");
-      return;
-    }
-    fetch(`http://localhost:8080/LMS/update-name/${email}/${newName}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(newName),
-    })
-      .then((response) => response.json())
-      .then((result) => {
-        setMessage(result.message || "Name updated successfully!");
-        fetchUserData();
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        setMessage("Failed to update name.");
-      });
+  const updateUserName = async () => {
+    if (!newName.trim()) { setErrors({ newName: "New name is required" }); return; }
+    setLoading(true);
+    const { data: result, error } = await apiPut(`/update-name/${email}/${newName}`, newName);
+    setMessage(error || result?.message || "Name updated successfully!");
+    if (!error) await fetchUserData();
+    setLoading(false);
   };
 
   return (
-    <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
-      <Card className="p-4 shadow-lg" style={{ width: "100%", maxWidth: "600px", backgroundColor: "rgba(255,255,255,0.9)" }}>
-        <Card.Body>
-          <Link to="/" className="btn btn-outline-secondary btn-sm mb-3">&#8592; Back</Link>
-          <Card.Title className="text-center mb-4">Update User Name</Card.Title>
-          <Form>
+    <div className="card form-card fade-in">
+      <div className="page-header">
+        <div className="icon"><HiPencil size={22} /></div>
+        <h1>Update User Name</h1>
+      </div>
+
+      <Form>
+        <Form.Group className="mb-3">
+          <Form.Label style={{ fontWeight: "500" }}>Email</Form.Label>
+          <Form.Control type="email" placeholder="Enter email" value={email} onChange={(e) => { setEmail(e.target.value); setErrors({ ...errors, email: "" }); }} style={{ backgroundColor: "var(--bg-body)" }} isInvalid={!!errors.email} />
+          {errors.email && <span className="field-error">{errors.email}</span>}
+        </Form.Group>
+
+        {data && (
+          <div className="fade-in">
+            <div style={{ padding: "12px 16px", backgroundColor: "var(--bg-body)", borderRadius: "var(--border-radius)", marginBottom: "16px" }}>
+              <span style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>Current Name: </span>
+              <span style={{ fontWeight: "600" }}>{data.name}</span>
+            </div>
             <Form.Group className="mb-3">
-              <Form.Label>Email</Form.Label>
-              <Form.Control
-                type="email"
-                placeholder="Enter email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
+              <Form.Label style={{ fontWeight: "500" }}>New Name</Form.Label>
+              <Form.Control type="text" placeholder="Enter new name" value={newName} onChange={(e) => { setNewName(e.target.value); setErrors({ ...errors, newName: "" }); }} style={{ backgroundColor: "var(--bg-body)" }} isInvalid={!!errors.newName} />
+              {errors.newName && <span className="field-error">{errors.newName}</span>}
             </Form.Group>
+            <button className="btn btn-success w-100" onClick={updateUserName} disabled={loading} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+              {loading && <span className="spinner" />}
+              {loading ? "Updating..." : "Update Name"}
+            </button>
+          </div>
+        )}
 
-            {data && (
-              <>
-                <p><strong>Current Name:</strong> {data.name}</p>
-                <Form.Group className="mb-3">
-                  <Form.Label>New Name</Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder="Enter new name"
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                  />
-                </Form.Group>
-                <Button variant="success" onClick={updateUserName}>
-                  Update Name
-                </Button>
-              </>
-            )}
-            {!data && (
-              <Button variant="primary" onClick={fetchUserData}>
-                Fetch User
-              </Button>
-            )}
-          </Form>
+        {!data && (
+          <button className="btn btn-primary w-100" onClick={fetchUserData} disabled={loading} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+            {loading && <span className="spinner" />}
+            {loading ? "Fetching..." : "Fetch User"}
+          </button>
+        )}
 
-          {message && <Alert variant="info" className="mt-3">{message}</Alert>}
-        </Card.Body>
-      </Card>
-    </Container>
+        {message && (
+          <Alert variant={message.includes("Error") || message.includes("Failed") ? "danger" : "success"} className="mt-3 mb-0">
+            {message}
+          </Alert>
+        )}
+      </Form>
+    </div>
   );
 }
 

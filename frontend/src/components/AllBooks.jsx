@@ -1,79 +1,67 @@
 import React, { useState } from "react";
-import { Container, Card, Button, Alert, Table } from "react-bootstrap";
-import { Link } from "react-router-dom";
-import "bootstrap/dist/css/bootstrap.min.css";
+import { Alert } from "react-bootstrap";
+import { HiBookOpen } from "react-icons/hi";
+import { apiGet } from "../api";
 
 function AllBooks() {
   const [books, setBooks] = useState([]);
   const [fetched, setFetched] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const fetchAllBooks = async () => {
-    try {
-      const response = await fetch(
-        "http://localhost:8080/LMS/fetch-all-books"
-      );
-
-      if (response.status === 404) {
-        setBooks([]);
-        setError("No books found");
-        return;
-      }
-
-      const json = await response.json();
-      setBooks(json);
-      setFetched(true);
-      setError("");
-    } catch (error) {
-      console.error(error);
-      setError("An error occurred while fetching data.");
-    }
+    setLoading(true);
+    const { data, error: err } = await apiGet("/fetch-all-books");
+    if (err) { setError(err); setBooks([]); }
+    else { setBooks(data || []); setError(""); }
+    setFetched(true);
+    setLoading(false);
   };
 
   return (
-    <Container className="d-flex justify-content-center align-items-center flex-column" style={{ minHeight: "80vh" }}>
-      <Card className="p-4 w-100 shadow-lg" style={{ maxWidth: "800px", backgroundColor: "rgba(255,255,255,0.95)" }}>
-        <Card.Body>
-          <Link to="/" className="btn btn-outline-secondary btn-sm mb-3">&#8592; Back</Link>
-          <Card.Title className="text-center mb-4">📚 All Books</Card.Title>
+    <div className="card data-card fade-in">
+      <div className="page-header">
+        <div className="icon"><HiBookOpen size={22} /></div>
+        <h1>All Books</h1>
+      </div>
 
-          <div className="d-grid mb-3">
-            <Button variant="primary" onClick={fetchAllBooks}>
-              Fetch All Books
-            </Button>
-          </div>
+      <button className="btn btn-primary mb-3" onClick={fetchAllBooks} disabled={loading} style={{ display: "flex", alignItems: "center", gap: "8px", width: "fit-content" }}>
+        {loading && <span className="spinner" />}
+        {loading ? "Fetching..." : "Fetch All Books"}
+      </button>
 
-          {error && <Alert variant="danger">{error}</Alert>}
+      {error && <Alert variant="danger">{error}</Alert>}
 
-          {fetched && books.length > 0 && (
-            <Table striped bordered hover className="mt-3">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Title</th>
-                  <th>Author</th>
+      {fetched && books.length > 0 && (
+        <div style={{ overflowX: "auto" }}>
+          <table className="table table-striped table-hover">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Title</th>
+                <th>Author</th>
+              </tr>
+            </thead>
+            <tbody>
+              {books.map((book, index) => (
+                <tr key={book.id}>
+                  <td>{index + 1}</td>
+                  <td style={{ fontWeight: "500" }}>{book.title}</td>
+                  <td>{book.authorName}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {books.map((book, index) => (
-                  <tr key={book.id}>
-                    <td>{index + 1}</td>
-                    <td>{book.title}</td>
-                    <td>{book.authorName}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          )}
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-          {fetched && books.length === 0 && !error && (
-            <Alert variant="info" className="mt-3">
-              No books found in the system.
-            </Alert>
-          )}
-        </Card.Body>
-      </Card>
-    </Container>
+      {fetched && books.length === 0 && !error && (
+        <div className="empty-state">
+          <div className="icon"><HiBookOpen size={48} /></div>
+          <p>No books found in the system.</p>
+        </div>
+      )}
+    </div>
   );
 }
 
