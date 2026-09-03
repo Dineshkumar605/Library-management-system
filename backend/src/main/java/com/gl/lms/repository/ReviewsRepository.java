@@ -9,4 +9,6 @@ import java.util.List;
 
 public interface ReviewsRepository extends JpaRepository<Reviews, Integer> {
     public List<Reviews> findByBook(Books book);
+
+    public List<Reviews> findByIsDemo(boolean isDemo);
 }

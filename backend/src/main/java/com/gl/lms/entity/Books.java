@@ -21,7 +21,7 @@ public class Books {
     @Column(name = "title", nullable = false , unique = true)
     private String title;
 
-
-
+    @Column(name = "is_demo", columnDefinition = "boolean default false")
+    private boolean isDemo = false;
 
 }

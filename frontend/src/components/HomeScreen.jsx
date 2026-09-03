@@ -1,8 +1,49 @@
-import React from "react";
+import React, { useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Link } from "react-router-dom";
 
 function HomeScreen() {
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const handleLoadDemo = async () => {
+    setLoading(true);
+    setMessage("");
+    try {
+      const response = await fetch("http://localhost:8080/LMS/demo/add", {
+        method: "POST",
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setMessage({ text: data.message, type: "success" });
+      } else {
+        setMessage({ text: data.message || "Failed to load demo data", type: "danger" });
+      }
+    } catch (error) {
+      setMessage({ text: "Error connecting to server", type: "danger" });
+    }
+    setLoading(false);
+  };
+
+  const handleClearDemo = async () => {
+    setLoading(true);
+    setMessage("");
+    try {
+      const response = await fetch("http://localhost:8080/LMS/demo/clear", {
+        method: "DELETE",
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setMessage({ text: data.message, type: "success" });
+      } else {
+        setMessage({ text: data.message || "Failed to clear demo data", type: "danger" });
+      }
+    } catch (error) {
+      setMessage({ text: "Error connecting to server", type: "danger" });
+    }
+    setLoading(false);
+  };
+
   return (
     <div className="container mt-5">
       <div className="row justify-content-center">
@@ -71,6 +112,35 @@ function HomeScreen() {
                 <Link to="/addbook" className="btn btn-outline-primary btn-lg">
                   📖 Add Book to Author
                 </Link>
+              </div>
+
+              <hr className="my-4" />
+
+              <h4 className="mb-3">Demo Data</h4>
+              <p className="text-muted mb-3">Load sample data to demonstrate the system, then clear it when done.</p>
+
+              {message && (
+                <div className={`alert alert-${message.type} alert-dismissible fade show`} role="alert">
+                  {message.text}
+                  <button type="button" className="btn-close" onClick={() => setMessage("")}></button>
+                </div>
+              )}
+
+              <div className="d-flex gap-3 justify-content-center">
+                <button
+                  className="btn btn-success btn-lg"
+                  onClick={handleLoadDemo}
+                  disabled={loading}
+                >
+                  {loading ? "Working..." : "Load Demo Data"}
+                </button>
+                <button
+                  className="btn btn-danger btn-lg"
+                  onClick={handleClearDemo}
+                  disabled={loading}
+                >
+                  {loading ? "Working..." : "Clear Demo Data"}
+                </button>
               </div>
             </div>
             <div className="card-footer text-muted text-center">

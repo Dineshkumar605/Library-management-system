@@ -28,4 +28,7 @@ public class Reviews {
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "book_id")
     private Books book;
+
+    @Column(name = "is_demo", columnDefinition = "boolean default false")
+    private boolean isDemo = false;
 }

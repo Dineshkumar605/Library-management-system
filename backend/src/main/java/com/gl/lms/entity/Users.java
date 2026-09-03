@@ -27,5 +27,7 @@ public class  Users {
     @JoinColumn(name = "library_cards_id", nullable = false)
     private LibraryCards libraryCards;
 
+    @Column(name = "is_demo", columnDefinition = "boolean default false")
+    private boolean isDemo = false;
 
 }

@@ -27,7 +27,7 @@ public class Authors {
     @JoinColumn(name="author_id", nullable = false)
     private List<Books> books;
 
-
-
+    @Column(name = "is_demo", columnDefinition = "boolean default false")
+    private boolean isDemo = false;
 
 }
