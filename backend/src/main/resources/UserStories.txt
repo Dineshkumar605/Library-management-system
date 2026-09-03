@@ -1,0 +1,8 @@
+1. As a librarian, I want to register a new user and issue a library card immediately after registration so that users can start borrowing books.
+2. As a librarian, I want to view the details of any user along with their library card information so that I can verify membership validity.
+3. As a user, I want to update my personal information (like name) if it changes so that my account stays up-to-date.
+4. As a librarian, I want to delete a user and their associated library card so that users are removed from the system.
+5. As an admin, I want to add a new author and link multiple new books to that author so that the library collection keeps growing.
+6. As a user, I want to give review to the book I read so that I can share my experience.
+7. As a user, I want to view a book's details along with all its reviews so that I can decide whether to borrow it.
+8. As an admin, I want to delete a book and automatically delete its associated reviews.

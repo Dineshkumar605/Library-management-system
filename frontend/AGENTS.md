@@ -1,0 +1,84 @@
+# Frontend AGENTS.md
+
+## Build & Run
+
+```bash
+cd frontend
+npm install
+npm start      # Runs on http://localhost:3000
+npm test       # Run tests
+npm run build  # Production build
+```
+
+## Project Structure
+
+```
+frontend/src/
+├── App.js              # Router + Navbar
+├── components/
+│   ├── HomeScreen.jsx  # Landing page
+│   ├── AddUser.jsx     # Create user form
+│   ├── AllUsers.jsx    # View all users
+│   ├── AllBooks.jsx    # View all books
+│   ├── AllReviews.jsx  # View all reviews
+│   ├── Home.jsx        # Fetch user by email
+│   ├── UpdateName.jsx  # Update user name
+│   ├── DelUser.jsx     # Delete user
+│   ├── AddAuthor.jsx   # Add author + books
+│   ├── AddReview.jsx   # Add book review
+│   ├── BookDetails.jsx # View book reviews
+│   └── DelBook.jsx     # Delete book
+├── index.js            # Entry point
+└── App.css             # Styles
+```
+
+## Tech Stack
+
+- **React**: 19.1.0
+- **React Router**: 7.6.3 (BrowserRouter)
+- **UI**: Bootstrap 5.3.7 + React-Bootstrap 2.10.10
+- **HTTP**: Fetch API (no axios)
+
+## Routes
+
+| Path | Component | Description |
+|------|-----------|-------------|
+| `/` | HomeScreen | Landing page |
+| `/adduser` | AddUser | Create user form |
+| `/allusers` | AllUsers | View all users |
+| `/allbooks` | AllBooks | View all books |
+| `/allreviews` | AllReviews | View all reviews |
+| `/fetchusers` | Home | Fetch user by email |
+| `/updateName` | UpdateName | Update user name |
+| `/deleteUser` | DelUser | Delete user |
+| `/addauthor` | AddAuthor | Add author + books |
+| `/addreview` | AddReview | Add book review |
+| `/bookDetails` | BookDetails | View book reviews |
+| `/deleteBook` | DelBook | Delete book |
+
+## API Communication
+
+Backend runs at `http://localhost:8080`. All API calls use fetch:
+
+```javascript
+const response = await fetch("http://localhost:8080/LMS/endpoint", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(data)
+});
+```
+
+## Conventions
+
+- Functional components with hooks
+- Bootstrap classes for styling (no CSS modules)
+- Components in `components/` directory
+- No state management library (local state only)
+- Form validation handled by backend
+
+## Dependencies
+
+- `react`, `react-dom`: 19.1.0
+- `react-router-dom`: 7.6.3
+- `bootstrap`: 5.3.7
+- `react-bootstrap`: 2.10.10
