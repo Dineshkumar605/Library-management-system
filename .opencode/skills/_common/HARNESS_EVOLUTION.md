@@ -1,0 +1,239 @@
+# Harness Evolution Protocol
+
+> **Tier:** `authoring` — activates when creating or auditing skills, not during user work. Precedence: `_common/OPERATIONAL.md` § Contract Precedence.
+
+Systematic re-evaluation of orchestration scaffolding as model capabilities improve. Scaffolding that was necessary for earlier models may become overhead for stronger models.
+
+---
+
+## Principles
+
+> Every piece of scaffolding encodes an assumption about model limitations. As models improve, assumptions must be re-tested and scaffolding simplified or removed when no longer needed.
+
+### Stale Assumptions (Managed Agents Pattern)
+
+Harnesses encode assumptions about model limitations that become outdated as capabilities improve. Workarounds for earlier models (e.g., context anxiety mitigations, verbose chain decomposition) become "dead weight" for stronger models. Treat every scaffolding component as a hypothesis with an expiration date.
+
+**Application:** Each HE component below tests whether its underlying assumption still holds. When the assumption expires, simplify or remove the scaffolding.
+
+### Systematic Scaffold Audit ("What Can I Stop Doing?")
+
+> Source: Anthropic "Harnessing Claude's Intelligence" (2025)
+
+Periodically audit all scaffolding components using this protocol:
+
+1. **Enumerate** — List every scaffolding component (guardrails, decomposition steps, recovery chains, context management workarounds)
+2. **State the assumption** — For each component, document the model limitation it was designed to compensate for
+3. **Test the assumption** — Verify whether that limitation still holds with the current model generation. Three audit dimensions:
+   - **Orchestration**: Can the agent self-filter tool outputs via code execution instead of routing through context?
+   - **Context management**: Can the agent use progressive disclosure (skills, on-demand file reads) instead of pre-loaded instructions?
+   - **Persistence**: Can the agent use file-based memory (memory folders) instead of in-context accumulation?
+4. **Propose simplification** — If the assumption no longer holds, feed into the HE evaluation cycle (below) for measured simplification
+
+This protocol makes the implicit logic behind HE-01 through HE-06 explicit and systematic. Run it aligned with Darwin's 30-day review cycle (ET-06).
+
+### Interface Stability over Implementation
+
+> "Opinionated about interfaces, unopinionated about implementations."
+
+Design stable contracts (handoff formats, `_STEP_COMPLETE` schema, `NEXUS_HANDOFF` structure) that outlast specific model capabilities. Implementations behind the interface (chain selection, agent internals, recovery strategies) can evolve freely without breaking the contract. When evolving scaffolding, change the implementation — not the interface — unless the interface itself is the bottleneck.
+
+### Stateless Orchestrator (Cattle, not Pets)
+
+Orchestrators (Nexus, Rally) should be stateless and replaceable. Session state (handoff context, checkpoint data, execution logs) must live outside the orchestrator so that:
+- Orchestrator interruption does not lose progress
+- Any orchestrator instance can resume from the last checkpoint
+- Debugging does not require access to the orchestrator's internal state
+
+**Current implementation:** `.agents/PROJECT.md` activity log + `_STEP_COMPLETE` handoff chain + journal files serve as the external session log. Checkpoint-resume in AUTORUN (4+ step chains) provides crash recovery.
+
+---
+
+## Metrics Definitions
+
+| Metric | Full Name | Formula | Purpose |
+|--------|-----------|---------|---------|
+| **CES** | Chain Effectiveness Score | `Success_Rate(0.35) + Recovery_Efficiency(0.20) + Step_Economy(0.20) + User_Satisfaction(0.25)` | Overall chain quality (defined in Nexus SKILL.md) |
+| **TES** | Token Efficiency Score | `output_information_tokens / total_tokens_consumed` — **specified, not implemented** | Cost efficiency — detects context bloat and unnecessary verbosity. **Do not cite TES as a measured value or use it as a gate.** No code computes `output_information_tokens`, and this repository's transcripts neither expose nor derive it (`_common/TOKEN_ECONOMY.md` §6). The formula is retained as a specification for a future evaluator pipeline; until one persists the numerator, use the turn-index rule of `TOKEN_ECONOMY.md` §2, which `token-economy.py` can actually check. |
+| **UQS** | Unified Quality Score | `Σ (normalized_agent_score × weight)` → 0-100. Canonical definition and weights: `nexus/reference/quality-iteration.md` § Unified Quality Score | Evaluator-derived deliverable quality. **Not** a human satisfaction rating — user satisfaction enters the ecosystem through the `User_Satisfaction` term of CES, and the two must never be substituted for one another |
+
+**Grading (CES — 0-1 scale):** A (>= 0.85), B (>= 0.70), C (>= 0.55), D (< 0.55). TES takes no grade while it is unimplemented; a band applied to a quantity nothing computes reads as a measurement and is how an unmeasured number becomes a gate. UQS is on a 0-100 scale and uses its own bands (90-100 Excellent · 80-89 Good · 70-79 Acceptable · 60-69 Fair · <60 Poor); do not read it against this table.
+
+---
+
+## Evaluation Components
+
+| ID | Component | Assumption | Simplification Condition | Measurement |
+|----|-----------|-----------|-------------------------|-------------|
+| HE-01 | Guardrail Levels | Models frequently make critical mistakes | L2+ trigger frequency drops 50% over baseline | Count L2/L3/L4 triggers per 100 tasks |
+| HE-02 | Agent Chain Length | Multi-agent decomposition produces better results | CES grade A + step_economy approaches 1.0 | CES score with single-agent vs multi-agent |
+| HE-03 | Recovery Chains | Auto-recovery is frequently needed | Recovery invocation rate drops below 5% | Recovery triggers per 100 executions |
+| HE-04 | Context Reset Strategy | Sonnet struggles with large context | `continuous` strategy shows no quality degradation vs `reset` | UQS comparison across strategies |
+| HE-05 | Evaluator Loop Iterations | Multiple loops needed for quality | First-iteration ACCEPT rate exceeds 80% | ACCEPT rate at iteration 1 |
+| HE-06 | Sprint Contract Detail | Detailed contracts needed for alignment | Contract-free executions show no quality degradation | UQS comparison with/without contracts |
+
+---
+
+## Evaluation Cycle
+
+**Frequency:** Aligned with Darwin ET-06 (30-day ecosystem review cycle).
+
+**Trigger (mechanical, not prose):** This 30-day cadence, Darwin's LT-06/ET-06, and Architect's ST-06 all cite "30+ days since last review" but historically depended on someone remembering to run it. Wire the tick itself: register a recurring routine via the **`schedule`** skill (Claude Code's built-in scheduled-cloud-agent mechanism — prefer it over a raw `CronCreate` call so the schedule is visible/manageable through the same interface a user would use to inspect or cancel it) with a 30-day interval that runs, in order:
+1. `python3 _common/scripts/lint-frontmatter.py --severity warning` and `python3 _common/scripts/validate-recipes.py --severity warning` — full-corpus health snapshot, reusing the exact scripts already wired into `.github/workflows/skill-lint.yml` (no new checker code).
+2. `python3 _common/scripts/lint-instructions.py --severity warning` — instruction-file drift snapshot (skill-count drift in `AGENTS.md`/`CLAUDE.md`, dead path references, rule duplication).
+3. `python3 _common/scripts/routing-oracle.py --severity warning` and `python3 _common/scripts/task-battery-check.py --severity warning` — routing-machinery snapshot (dead-refs, ladder order, producer/verifier, roster completeness, task-battery mechanical assertions).
+3b. `python3 _common/scripts/token-economy.py --severity warning` — token-economy snapshot (`_common/TOKEN_ECONOMY.md`). A P0 (`TE-INTEGRITY`) finding means a billed transcript record lost its `requestId`/usage or has conflicting duplicate usage — treat it as a data-integrity bug in the transcript pipeline, not a cost signal, and investigate before trusting any total from this run. A P1 (`TE-CONCENTRATION`) or P2 (`TE-LONGTAIL`) finding means session length is driving cost (`TOKEN_ECONOMY.md` §2) — feed it into the handoff-timing check in step 6. Do not answer it with a SKILL.md body-size change: §1 of that doc requires session length to be fixed first and the corpus re-measured before body size is judged worth touching, because body cost scales with the turns that follow the load.
+3c. `python3 _common/scripts/lint-contracts.py --severity warning --report` — contract-delivery snapshot (`_common/scripts/lint-contracts.py`). This is the only check that asks whether a contract can reach a running agent at all, so it is where a corpus-wide edit shows up first: a spine contract whose direct-naming count fell means skills stopped loading it without any of them changing behaviour visibly. Compare the depth table against the previous cycle's, not against zero — the count that matters is the *delta*.
+4. Invoke `darwin`'s EFS scoring recipe against that snapshot.
+5. If EFS or compliance drift crosses `gauge`'s stability-index thresholds (<10% stable / 10-20% investigate / >20% intervene — `gauge/SKILL.md` CAPABILITIES_SUMMARY), kick a skill-evolve run bounded by explicit `MAX_ITERATIONS`/`CIRCUIT_BREAKER` guards rather than an unbounded new loop.
+6. Journal the outcome to `.agents/PROJECT.md`.
+
+This is additive scheduling only (no new script, no new loop, no new agent) — a `schedule`-registered routine pointed at machinery that already exists and is already tested, closing the "prescribed vs. wired" gap between this document's prose cadence and an actually-firing trigger.
+
+**Bootstrap clause:** on the first session in this repo, verify the 30-day audit routine actually exists (`CronList`); if missing, register it per this section (`schedule` skill, 30-day interval, the 5-step sequence above). This turns the prescription into a self-checking precondition instead of a one-time setup step someone has to remember.
+
+**Process:**
+
+```
+1. Collect metrics for each HE component (minimum 3 data points)
+     ↓
+2. Compare against simplification conditions
+     ↓
+3. For each component meeting its condition:
+     a. Propose simplification (documented in EVOLUTION_SIGNAL)
+     b. Run A/B comparison (3 tasks minimum)
+     c. Measure CES/UQS impact (TES is unimplemented — see Metrics Definitions)
+     ↓
+4. Apply or reject simplification
+     ├─ CES drop <= 0.05 → Apply (safe simplification)
+     ├─ CES drop 0.05-0.10 → Apply with monitoring (1 cycle)
+     └─ CES drop > 0.10 → Reject (rollback immediately)
+```
+
+---
+
+## Harness Regression Checklist
+
+The Evaluation Cycle above measures whether the harness still *scores* well. This checklist measures whether it still *fails safely* — the part a green dashboard never shows. Run it before promoting any change to `_common/`, the routing matrix, or a hub skill.
+
+Coverage:
+
+- [ ] The golden fixture set and the adversarial fixture set are **kept separate** — passing the easy set is not evidence about the hard one.
+- [ ] Engine, harness, corpus, and protocol versions are recorded with the result. A score without a version binding cannot be compared to anything.
+- [ ] Deterministic checks (`lint-frontmatter`, `validate-recipes`, `lint-instructions`, `routing-oracle`, `task-battery-check`, `lint-contracts`) re-run from a clean checkout, not an incrementally-mutated one.
+- [ ] Trial count and any randomization policy are fixed in advance, not chosen after seeing the spread.
+
+Fault injection — each of these is a *deliberate* test, not something to wait for:
+
+- [ ] Step failure, timeout, and partial completion injected mid-chain.
+- [ ] **Context starvation** (a required reference withheld) and **context flooding** (irrelevant references forced in) exercised.
+- [ ] **Stale instruction** exercised — a reference deliberately left describing an outdated workflow, to confirm the drift is detected rather than obeyed.
+- [ ] A denied confirmation and an expired authorization exercised.
+- [ ] Checkpoint corruption and resume failure exercised.
+
+Governance:
+
+- [ ] Cost, latency, and human-intervention rate checked for regression alongside quality — a change that improves quality by burning 3× the budget is a regression that scores as an improvement.
+- [ ] **Holdout fixtures were isolated from the agent proposing the change** (`_common/SELF_EVOLUTION.md` § Eval Integrity). Where isolation was impractical, the exposure is recorded rather than assumed away.
+- [ ] Rollback was rehearsed, not merely documented.
+
+**Rule:** a checklist item that has never once failed is not proof of robustness — it is a candidate for `HD-GAME` (`_common/HARNESS_DEBT.md`). Injection tests are supposed to fail before the fix lands.
+
+**The same rule applied to the checkers themselves.** A check nobody has watched fail is indistinguishable from one that returns zero unconditionally — it passes CI, it passes review, and because it is *reported* as enforcement it also stops anyone looking for the enforcement that is absent. Every check in `_common/scripts/` therefore carries a test in `_common/scripts/test_checkers.py` that breaks the repository one way and asserts the check fails **and names the defect**; a new check without one is not landed. Two shipped without one before that suite existed, and both were silently vacuous for their whole lifetime — recorded, with what now catches them, in **`_common/LESSONS.md`**.
+
+That register is where a fixed failure goes when it has a mechanism, and the gate on entry is that it *has* one: `lint-lessons.py` rejects a mechanism that reads as an intention. A lesson that cannot be mechanised is not written down as a weaker rule — it is left out, and the harness admits nobody is keeping it.
+
+---
+
+## Safety Guards
+
+### Hard Constraints
+
+- **Security scaffolding is exempt.** Never simplify Sentinel checks, L4 guardrails, or security-related recovery chains regardless of metrics.
+- **Minimum data requirement.** At least 3 data points before any simplification decision.
+- **Immediate rollback trigger.** If CES drops more than 0.10 after simplification, rollback immediately without waiting for the full evaluation cycle. (TES is excluded until implemented — a trigger that cannot fire is worse than no trigger, because the guard reads as covered.)
+- **One component at a time.** Never simplify multiple components simultaneously — isolate the impact of each change.
+
+### Rollback Protocol
+
+```
+Simplification applied
+  ↓
+Monitor for 1 evaluation cycle (or until 5 tasks executed)
+  ↓
+CES regression detected?
+  ├─ > 0.10 drop → Immediate rollback, log as failed simplification
+  ├─ 0.05-0.10 drop → Extend monitoring for 1 more cycle
+  │    └─ Still regressed → Rollback
+  │    └─ Recovered → Keep simplification
+  └─ <= 0.05 drop → Simplification confirmed successful
+```
+
+---
+
+## Evolution Signal Format
+
+Schema and signal types → `_common/EVOLUTION.md` § EVOLUTION_SIGNAL Format. Harness simplifications add no fields; they are emitted as `type: DRIFT` with the HE component id leading the `summary`:
+
+```markdown
+<!-- EVOLUTION_SIGNAL
+type: DRIFT
+source: nexus
+date: YYYY-MM-DD
+summary: "HE-05: First-iteration ACCEPT rate at 85% (threshold: 80%). Proposing Max_Iterations reduction from 3 to 2."
+affects: ["nexus", "evaluator-loop-protocol"]
+priority: MEDIUM
+reusable: true
+-->
+```
+
+---
+
+## Simplification Examples
+
+### HE-01: Guardrail Reduction
+
+**Before:** L2 checkpoint after every agent step.
+**After:** L2 checkpoint only at VERIFY phase; L1 monitoring during EXECUTE.
+**Condition met when:** L2+ triggers per 100 tasks < 5 (was 10+ at baseline).
+
+### HE-02: Chain Compression
+
+**Before:** Scout → Builder → Radar (3 agents).
+**After:** Builder → Radar (2 agents; Builder subsumes investigation).
+**Condition met when:** CES grade A with Scout skipped AND step_economy >= 0.9.
+
+### HE-05: Evaluator Loop Reduction
+
+**Before:** Max 3 iterations with full Evaluator team.
+**After:** Max 2 iterations, or single-pass evaluation for low-complexity tasks.
+**Condition met when:** First-iteration ACCEPT rate > 80%.
+
+### HE-06: Contract Simplification
+
+**Before:** Full SPRINT_CONTRACT with detailed acceptance criteria.
+**After:** Lightweight contract (Goal + Scope only) or contract skipped for MEDIUM complexity.
+**Condition met when:** UQS shows no degradation without detailed contracts.
+
+---
+
+## Tracking
+
+Record harness evolution decisions in `.agents/nexus.md` journal:
+
+```markdown
+### Harness Evolution [YYYY-MM-DD]
+- Component: HE-[ID]
+- Action: [simplified | retained | rolled-back]
+- Data points: [N]
+- CES impact: [delta]
+- Decision: [rationale]
+```
+
+Integration with Darwin: Harness evolution findings are reported as `EVOLUTION_SIGNAL` type `DRIFT` for ecosystem-wide tracking. Darwin may incorporate these signals into its Ecosystem Fitness Score (EFS) assessment.
+
+---
+
+## Open Follow-ups
+
+#TODO(agent) — opened 2026-07 · owner: `darwin` · expires: next 30-day audit cycle after 2026-08-17 (if unclaimed by then, retire this marker rather than carrying it further): Fold the most recent Scaffold Audit cycle results back into `nexus/SKILL.md` and `_common/AUTORUN.md`. (The 2026-07 audit corrected cross-model retirement scaffolding and version drift in `_common/`; the next cycle should re-verify HE-01 L1-L4 checkpoint trigger frequency against the current model generation and simplify per the Evaluation Cycle if the condition is met.)
