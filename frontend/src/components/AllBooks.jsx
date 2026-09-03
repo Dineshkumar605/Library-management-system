@@ -1,22 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Alert } from "react-bootstrap";
 import { HiBookOpen } from "react-icons/hi";
 import { apiGet } from "../api";
 
 function AllBooks() {
   const [books, setBooks] = useState([]);
-  const [fetched, setFetched] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const fetchAllBooks = async () => {
-    setLoading(true);
-    const { data, error: err } = await apiGet("/fetch-all-books");
-    if (err) { setError(err); setBooks([]); }
-    else { setBooks(data || []); setError(""); }
-    setFetched(true);
-    setLoading(false);
-  };
+  useEffect(() => {
+    const fetchAllBooks = async () => {
+      setLoading(true);
+      const { data, error: err } = await apiGet("/fetch-all-books");
+      if (err) { setError(err); setBooks([]); }
+      else { setBooks(data || []); setError(""); }
+      setLoading(false);
+    };
+    fetchAllBooks();
+  }, []);
 
   return (
     <div className="card data-card fade-in">
@@ -25,14 +26,16 @@ function AllBooks() {
         <h1>All Books</h1>
       </div>
 
-      <button className="btn btn-primary mb-3" onClick={fetchAllBooks} disabled={loading} style={{ display: "flex", alignItems: "center", gap: "8px", width: "fit-content" }}>
-        {loading && <span className="spinner" />}
-        {loading ? "Fetching..." : "Fetch All Books"}
-      </button>
+      {loading && (
+        <div className="empty-state">
+          <span className="spinner spinner-dark" />
+          <p>Loading books...</p>
+        </div>
+      )}
 
       {error && <Alert variant="danger">{error}</Alert>}
 
-      {fetched && books.length > 0 && (
+      {!loading && books.length > 0 && (
         <div style={{ overflowX: "auto" }}>
           <table className="table table-striped table-hover">
             <thead>
@@ -55,7 +58,7 @@ function AllBooks() {
         </div>
       )}
 
-      {fetched && books.length === 0 && !error && (
+      {!loading && books.length === 0 && !error && (
         <div className="empty-state">
           <div className="icon"><HiBookOpen size={48} /></div>
           <p>No books found in the system.</p>

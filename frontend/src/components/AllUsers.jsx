@@ -1,22 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Badge, Alert } from "react-bootstrap";
 import { HiUsers } from "react-icons/hi";
 import { apiGet } from "../api";
 
 function AllUsers() {
   const [users, setUsers] = useState([]);
-  const [fetched, setFetched] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const fetchAllUsers = async () => {
-    setLoading(true);
-    const { data, error: err } = await apiGet("/fetch-all-users");
-    if (err) { setError(err); setUsers([]); }
-    else { setUsers(data || []); setError(""); }
-    setFetched(true);
-    setLoading(false);
-  };
+  useEffect(() => {
+    const fetchAllUsers = async () => {
+      setLoading(true);
+      const { data, error: err } = await apiGet("/fetch-all-users");
+      if (err) { setError(err); setUsers([]); }
+      else { setUsers(data || []); setError(""); }
+      setLoading(false);
+    };
+    fetchAllUsers();
+  }, []);
 
   return (
     <div className="card data-card fade-in">
@@ -25,14 +26,16 @@ function AllUsers() {
         <h1>All Users</h1>
       </div>
 
-      <button className="btn btn-primary mb-3" onClick={fetchAllUsers} disabled={loading} style={{ display: "flex", alignItems: "center", gap: "8px", width: "fit-content" }}>
-        {loading && <span className="spinner" />}
-        {loading ? "Fetching..." : "Fetch All Users"}
-      </button>
+      {loading && (
+        <div className="empty-state">
+          <span className="spinner spinner-dark" />
+          <p>Loading users...</p>
+        </div>
+      )}
 
       {error && <Alert variant="danger">{error}</Alert>}
 
-      {fetched && users.length > 0 && (
+      {!loading && users.length > 0 && (
         <div style={{ overflowX: "auto" }}>
           <table className="table table-striped table-hover">
             <thead>
@@ -66,7 +69,7 @@ function AllUsers() {
         </div>
       )}
 
-      {fetched && users.length === 0 && !error && (
+      {!loading && users.length === 0 && !error && (
         <div className="empty-state">
           <div className="icon"><HiUsers size={48} /></div>
           <p>No users found in the system.</p>

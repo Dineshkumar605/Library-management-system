@@ -1,22 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Badge, Alert } from "react-bootstrap";
 import { HiStar } from "react-icons/hi";
 import { apiGet } from "../api";
 
 function AllReviews() {
   const [reviews, setReviews] = useState([]);
-  const [fetched, setFetched] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const fetchAllReviews = async () => {
-    setLoading(true);
-    const { data, error: err } = await apiGet("/fetch-all-reviews");
-    if (err) { setError(err); setReviews([]); }
-    else { setReviews(data || []); setError(""); }
-    setFetched(true);
-    setLoading(false);
-  };
+  useEffect(() => {
+    const fetchAllReviews = async () => {
+      setLoading(true);
+      const { data, error: err } = await apiGet("/fetch-all-reviews");
+      if (err) { setError(err); setReviews([]); }
+      else { setReviews(data || []); setError(""); }
+      setLoading(false);
+    };
+    fetchAllReviews();
+  }, []);
 
   const renderStars = (rating) => {
     return (
@@ -36,14 +37,16 @@ function AllReviews() {
         <h1>All Reviews</h1>
       </div>
 
-      <button className="btn btn-primary mb-3" onClick={fetchAllReviews} disabled={loading} style={{ display: "flex", alignItems: "center", gap: "8px", width: "fit-content" }}>
-        {loading && <span className="spinner" />}
-        {loading ? "Fetching..." : "Fetch All Reviews"}
-      </button>
+      {loading && (
+        <div className="empty-state">
+          <span className="spinner spinner-dark" />
+          <p>Loading reviews...</p>
+        </div>
+      )}
 
       {error && <Alert variant="danger">{error}</Alert>}
 
-      {fetched && reviews.length > 0 && (
+      {!loading && reviews.length > 0 && (
         <div style={{ overflowX: "auto" }}>
           <table className="table table-striped table-hover">
             <thead>
@@ -68,7 +71,7 @@ function AllReviews() {
         </div>
       )}
 
-      {fetched && reviews.length === 0 && !error && (
+      {!loading && reviews.length === 0 && !error && (
         <div className="empty-state">
           <div className="icon"><HiStar size={48} /></div>
           <p>No reviews found in the system.</p>
