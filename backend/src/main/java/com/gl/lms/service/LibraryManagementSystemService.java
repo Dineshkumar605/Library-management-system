@@ -34,4 +34,8 @@ public interface LibraryManagementSystemService {
     public List<UsersDTO> fetchAllUsers() throws LibraryManagementSystemException;
 
     public List<BooksDTO> fetchAllBooks() throws LibraryManagementSystemException;
+
+    public ResponseDTO addDemoData() throws LibraryManagementSystemException;
+
+    public ResponseDTO clearDemoData() throws LibraryManagementSystemException;
 }

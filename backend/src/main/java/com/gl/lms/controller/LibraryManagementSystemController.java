@@ -115,5 +115,16 @@ public class LibraryManagementSystemController {
         return new ResponseEntity<>(reviewsDTOList, HttpStatus.OK);
     }
 
+    @PostMapping(value = "/demo/add")
+    public ResponseEntity<ResponseDTO> addDemoData() throws LibraryManagementSystemException {
+        ResponseDTO responseDTO = libraryManagementSystemService.addDemoData();
+        return new ResponseEntity<>(responseDTO, HttpStatus.CREATED);
+    }
+
+    @DeleteMapping(value = "/demo/clear")
+    public ResponseEntity<ResponseDTO> clearDemoData() throws LibraryManagementSystemException {
+        ResponseDTO responseDTO = libraryManagementSystemService.clearDemoData();
+        return new ResponseEntity<>(responseDTO, HttpStatus.OK);
+    }
 
     }
