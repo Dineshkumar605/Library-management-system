@@ -1,85 +1,64 @@
 import React, { useState } from "react";
-import { Container, Card, Form, Button, Alert, ListGroup } from "react-bootstrap";
-import { Link } from "react-router-dom";
-import "bootstrap/dist/css/bootstrap.min.css";
+import { Form, Alert, ListGroup } from "react-bootstrap";
+import { HiSearch } from "react-icons/hi";
+import { apiGet } from "../api";
 
 function Home() {
   const [data, setData] = useState(null);
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
-
-  const handleEmailChange = (e) => {
-    setEmail(e.target.value);
-  };
+  const [loading, setLoading] = useState(false);
 
   const fetchUserData = async () => {
-    if (!email.trim()) {
-      alert("Please enter email");
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `http://localhost:8080/LMS/fetch-user-and-issued-library-card/${email}`
-      );
-
-      if (response.status === 404) {
-        setData(null);
-        setError("User not found");
-        return;
-      }
-
-      const json = await response.json();
-      setData(json);
-      setError("");
-    } catch (error) {
-      console.error(error);
-      setError("An error occurred while fetching data.");
-    }
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      fetchUserData();
-    }
+    if (!email.trim()) { setError("Please enter an email"); return; }
+    setLoading(true);
+    setError("");
+    const { data: result, error: err } = await apiGet(`/fetch-user-and-issued-library-card/${email}`);
+    if (err) { setError(err); setData(null); }
+    else { setData(result); setError(""); }
+    setLoading(false);
   };
 
   return (
-    <Container className="d-flex justify-content-center align-items-center flex-column" style={{ minHeight: "80vh" }}>
-      <Card className="p-4 w-100 shadow-lg" style={{ maxWidth: "500px", backgroundColor: "rgba(255,255,255,0.95)" }}>
-        <Card.Body>
-          <Link to="/" className="btn btn-outline-secondary btn-sm mb-3">&#8592; Back</Link>
-          <Card.Title className="text-center mb-4">📧 Fetch User by Email</Card.Title>
+    <div className="card form-card fade-in">
+      <div className="page-header">
+        <div className="icon"><HiSearch size={22} /></div>
+        <h1>Fetch User by Email</h1>
+      </div>
 
-          <Form.Group className="mb-3">
-            <Form.Control
-              type="email"
-              placeholder="Enter email"
-              value={email}
-              onChange={handleEmailChange}
-              onKeyDown={handleKeyDown}
-            />
-          </Form.Group>
+      <div className="search-input-wrapper mb-3">
+        <HiSearch className="search-icon" size={18} />
+        <Form.Control type="email" placeholder="Enter user email" value={email} onChange={(e) => setEmail(e.target.value)} onKeyDown={(e) => e.key === "Enter" && fetchUserData()} style={{ paddingLeft: "40px" }} />
+      </div>
 
-          <div className="d-grid mb-3">
-            <Button variant="primary" onClick={fetchUserData}>
-              Fetch Data
-            </Button>
-          </div>
+      <button className="btn btn-primary w-100" onClick={fetchUserData} disabled={loading} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+        {loading && <span className="spinner" />}
+        {loading ? "Fetching..." : "Fetch Data"}
+      </button>
 
-          {error && <Alert variant="danger">{error}</Alert>}
+      {error && <Alert variant="danger" className="mt-3 mb-0">{error}</Alert>}
 
-          {data && (
-            <ListGroup className="mt-3">
-              <ListGroup.Item><strong>Name:</strong> {data.name}</ListGroup.Item>
-              <ListGroup.Item><strong>Email:</strong> {data.email}</ListGroup.Item>
-              <ListGroup.Item><strong>Issue Date:</strong> {data.libraryCardsDTO.issueDate}</ListGroup.Item>
-              <ListGroup.Item><strong>Expiry Date:</strong> {data.libraryCardsDTO.expiryDate}</ListGroup.Item>
-            </ListGroup>
-          )}
-        </Card.Body>
-      </Card>
-    </Container>
+      {data && (
+        <ListGroup className="mt-3 fade-in">
+          <ListGroup.Item style={{ display: "flex", justifyContent: "space-between" }}>
+            <span style={{ fontWeight: "600", color: "var(--text-secondary)" }}>Name</span>
+            <span style={{ fontWeight: "500" }}>{data.name}</span>
+          </ListGroup.Item>
+          <ListGroup.Item style={{ display: "flex", justifyContent: "space-between" }}>
+            <span style={{ fontWeight: "600", color: "var(--text-secondary)" }}>Email</span>
+            <span>{data.email}</span>
+          </ListGroup.Item>
+          <ListGroup.Item style={{ display: "flex", justifyContent: "space-between" }}>
+            <span style={{ fontWeight: "600", color: "var(--text-secondary)" }}>Issue Date</span>
+            <span>{data.libraryCardsDTO.issueDate}</span>
+          </ListGroup.Item>
+          <ListGroup.Item style={{ display: "flex", justifyContent: "space-between" }}>
+            <span style={{ fontWeight: "600", color: "var(--text-secondary)" }}>Expiry Date</span>
+            <span>{data.libraryCardsDTO.expiryDate}</span>
+          </ListGroup.Item>
+        </ListGroup>
+      )}
+    </div>
   );
 }
 

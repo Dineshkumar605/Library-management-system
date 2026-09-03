@@ -1,90 +1,78 @@
 import React, { useState } from "react";
-import { Container, Card, Button, Alert, Table, Badge } from "react-bootstrap";
-import { Link } from "react-router-dom";
-import "bootstrap/dist/css/bootstrap.min.css";
+import { Badge, Alert } from "react-bootstrap";
+import { HiUsers } from "react-icons/hi";
+import { apiGet } from "../api";
 
 function AllUsers() {
   const [users, setUsers] = useState([]);
   const [fetched, setFetched] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const fetchAllUsers = async () => {
-    try {
-      const response = await fetch(
-        "http://localhost:8080/LMS/fetch-all-users"
-      );
-
-      if (response.status === 404) {
-        setUsers([]);
-        setError("No users found");
-        return;
-      }
-
-      const json = await response.json();
-      setUsers(json);
-      setFetched(true);
-      setError("");
-    } catch (error) {
-      console.error(error);
-      setError("An error occurred while fetching data.");
-    }
+    setLoading(true);
+    const { data, error: err } = await apiGet("/fetch-all-users");
+    if (err) { setError(err); setUsers([]); }
+    else { setUsers(data || []); setError(""); }
+    setFetched(true);
+    setLoading(false);
   };
 
   return (
-    <Container className="d-flex justify-content-center align-items-center flex-column" style={{ minHeight: "80vh" }}>
-      <Card className="p-4 w-100 shadow-lg" style={{ maxWidth: "800px", backgroundColor: "rgba(255,255,255,0.95)" }}>
-        <Card.Body>
-          <Link to="/" className="btn btn-outline-secondary btn-sm mb-3">&#8592; Back</Link>
-          <Card.Title className="text-center mb-4">👥 All Users</Card.Title>
+    <div className="card data-card fade-in">
+      <div className="page-header">
+        <div className="icon"><HiUsers size={22} /></div>
+        <h1>All Users</h1>
+      </div>
 
-          <div className="d-grid mb-3">
-            <Button variant="primary" onClick={fetchAllUsers}>
-              Fetch All Users
-            </Button>
-          </div>
+      <button className="btn btn-primary mb-3" onClick={fetchAllUsers} disabled={loading} style={{ display: "flex", alignItems: "center", gap: "8px", width: "fit-content" }}>
+        {loading && <span className="spinner" />}
+        {loading ? "Fetching..." : "Fetch All Users"}
+      </button>
 
-          {error && <Alert variant="danger">{error}</Alert>}
+      {error && <Alert variant="danger">{error}</Alert>}
 
-          {fetched && users.length > 0 && (
-            <Table striped bordered hover className="mt-3">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Card ID</th>
-                  <th>Issue Date</th>
-                  <th>Expiry Date</th>
+      {fetched && users.length > 0 && (
+        <div style={{ overflowX: "auto" }}>
+          <table className="table table-striped table-hover">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Card ID</th>
+                <th>Issue Date</th>
+                <th>Expiry Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((user, index) => (
+                <tr key={user.email}>
+                  <td>{index + 1}</td>
+                  <td style={{ fontWeight: "500" }}>{user.name}</td>
+                  <td>{user.email}</td>
+                  <td><code style={{ fontSize: "0.8125rem" }}>{user.libraryCardsDTO.id}</code></td>
+                  <td>{user.libraryCardsDTO.issueDate}</td>
+                  <td>
+                    {user.libraryCardsDTO.expiryDate}{" "}
+                    {new Date(user.libraryCardsDTO.expiryDate) < new Date() && (
+                      <Badge bg="danger" style={{ marginLeft: "4px" }}>Expired</Badge>
+                    )}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {users.map((user, index) => (
-                  <tr key={user.email}>
-                    <td>{index + 1}</td>
-                    <td>{user.name}</td>
-                    <td>{user.email}</td>
-                    <td>{user.libraryCardsDTO.id}</td>
-                    <td>{user.libraryCardsDTO.issueDate}</td>
-                    <td>
-                      {user.libraryCardsDTO.expiryDate}{" "}
-                      {new Date(user.libraryCardsDTO.expiryDate) < new Date() && (
-                        <Badge bg="danger">Expired</Badge>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          )}
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-          {fetched && users.length === 0 && !error && (
-            <Alert variant="info" className="mt-3">
-              No users found in the system.
-            </Alert>
-          )}
-        </Card.Body>
-      </Card>
-    </Container>
+      {fetched && users.length === 0 && !error && (
+        <div className="empty-state">
+          <div className="icon"><HiUsers size={48} /></div>
+          <p>No users found in the system.</p>
+        </div>
+      )}
+    </div>
   );
 }
 

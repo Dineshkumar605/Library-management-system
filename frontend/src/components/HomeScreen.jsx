@@ -1,25 +1,74 @@
-import React, { useState } from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { API_BASE } from "../api";
+import {
+  HiUsers,
+  HiBookOpen,
+  HiStar,
+  HiPlus,
+  HiTrash,
+  HiPencil,
+  HiSearch,
+  HiRefresh,
+} from "react-icons/hi";
 
 function HomeScreen() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [stats, setStats] = useState({ users: 0, books: 0, reviews: 0 });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const [usersRes, booksRes, reviewsRes] = await Promise.allSettled([
+          fetch(`${API_BASE}/fetch-all-users`),
+          fetch(`${API_BASE}/fetch-all-books`),
+          fetch(`${API_BASE}/fetch-all-reviews`),
+        ]);
+        if (usersRes.status === "fulfilled" && usersRes.value.ok) {
+          const d = await usersRes.value.json();
+          setStats((s) => ({ ...s, users: d.length }));
+        }
+        if (booksRes.status === "fulfilled" && booksRes.value.ok) {
+          const d = await booksRes.value.json();
+          setStats((s) => ({ ...s, books: d.length }));
+        }
+        if (reviewsRes.status === "fulfilled" && reviewsRes.value.ok) {
+          const d = await reviewsRes.value.json();
+          setStats((s) => ({ ...s, reviews: d.length }));
+        }
+      } catch { }
+    };
+    fetchStats();
+  }, []);
 
   const handleLoadDemo = async () => {
     setLoading(true);
     setMessage("");
     try {
-      const response = await fetch("http://localhost:8080/LMS/demo/add", {
-        method: "POST",
-      });
+      const response = await fetch(`${API_BASE}/demo/add`, { method: "POST" });
       const data = await response.json();
+      setMessage({ text: data.message, type: response.ok ? "success" : "danger" });
       if (response.ok) {
-        setMessage({ text: data.message, type: "success" });
-      } else {
-        setMessage({ text: data.message || "Failed to load demo data", type: "danger" });
+        const [usersRes, booksRes, reviewsRes] = await Promise.allSettled([
+          fetch(`${API_BASE}/fetch-all-users`),
+          fetch(`${API_BASE}/fetch-all-books`),
+          fetch(`${API_BASE}/fetch-all-reviews`),
+        ]);
+        if (usersRes.status === "fulfilled" && usersRes.value.ok) {
+          const d = await usersRes.value.json();
+          setStats((s) => ({ ...s, users: d.length }));
+        }
+        if (booksRes.status === "fulfilled" && booksRes.value.ok) {
+          const d = await booksRes.value.json();
+          setStats((s) => ({ ...s, books: d.length }));
+        }
+        if (reviewsRes.status === "fulfilled" && reviewsRes.value.ok) {
+          const d = await reviewsRes.value.json();
+          setStats((s) => ({ ...s, reviews: d.length }));
+        }
       }
-    } catch (error) {
+    } catch {
       setMessage({ text: "Error connecting to server", type: "danger" });
     }
     setLoading(false);
@@ -29,124 +78,165 @@ function HomeScreen() {
     setLoading(true);
     setMessage("");
     try {
-      const response = await fetch("http://localhost:8080/LMS/demo/clear", {
-        method: "DELETE",
-      });
+      const response = await fetch(`${API_BASE}/demo/clear`, { method: "DELETE" });
       const data = await response.json();
-      if (response.ok) {
-        setMessage({ text: data.message, type: "success" });
-      } else {
-        setMessage({ text: data.message || "Failed to clear demo data", type: "danger" });
-      }
-    } catch (error) {
+      setMessage({ text: data.message, type: response.ok ? "success" : "danger" });
+      if (response.ok) setStats({ users: 0, books: 0, reviews: 0 });
+    } catch {
       setMessage({ text: "Error connecting to server", type: "danger" });
     }
     setLoading(false);
   };
 
+  const statCards = [
+    { label: "Total Users", value: stats.users, icon: <HiUsers size={24} />, color: "var(--primary)", bg: "var(--primary-light)" },
+    { label: "Total Books", value: stats.books, icon: <HiBookOpen size={24} />, color: "var(--info)", bg: "var(--info-light)" },
+    { label: "Total Reviews", value: stats.reviews, icon: <HiStar size={24} />, color: "var(--warning)", bg: "var(--warning-light)" },
+  ];
+
+  const actions = [
+    { to: "/adduser", icon: <HiPlus size={20} />, label: "Add User", desc: "Create a new user with library card", color: "var(--success)" },
+    { to: "/allusers", icon: <HiUsers size={20} />, label: "All Users", desc: "View and manage all registered users", color: "var(--primary)" },
+    { to: "/addauthor", icon: <HiPlus size={20} />, label: "Add Author", desc: "Add a new author with books", color: "var(--accent)" },
+    { to: "/allbooks", icon: <HiBookOpen size={20} />, label: "All Books", desc: "Browse the complete book catalog", color: "var(--info)" },
+    { to: "/addreview", icon: <HiStar size={20} />, label: "Add Review", desc: "Write a review for a book", color: "var(--warning)" },
+    { to: "/allreviews", icon: <HiStar size={20} />, label: "All Reviews", desc: "See all book reviews", color: "#f97316" },
+    { to: "/fetchusers", icon: <HiSearch size={20} />, label: "Fetch User", desc: "Look up a user by email", color: "var(--text-secondary)" },
+    { to: "/updateName", icon: <HiPencil size={20} />, label: "Update Name", desc: "Change a user's name", color: "var(--primary-dark)" },
+    { to: "/deleteUser", icon: <HiTrash size={20} />, label: "Delete User", desc: "Remove a user and their card", color: "var(--danger)" },
+    { to: "/deleteBook", icon: <HiTrash size={20} />, label: "Delete Book", desc: "Remove a book from the catalog", color: "var(--danger)" },
+  ];
+
   return (
-    <div className="container mt-5">
-      <div className="row justify-content-center">
-        <div className="col-md-10">
-          <div className="card shadow-lg border-0">
-            <div className="card-header bg-dark text-white text-center">
-              <h2>📚 Library Management System</h2>
-            </div>
-            <div className="card-body text-center">
-              <p className="lead mb-4">
-                Welcome to the Library Management System — a complete platform to manage users, authors, books, and reviews efficiently.
-              </p>
+    <div>
+      {/* Header */}
+      <div className="page-header">
+        <div className="icon"><HiBookOpen size={22} /></div>
+        <div>
+          <h1>Library Management System</h1>
+          <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "0.875rem" }}>
+            Manage users, books, authors, and reviews
+          </p>
+        </div>
+      </div>
 
-              <h4 className="mb-3">Quick Actions</h4>
-
-              <div className="row g-3 justify-content-center">
-                <div className="col-md-4">
-                  <div className="card h-100 border-secondary">
-                    <div className="card-header bg-secondary text-white text-center">👥 Users</div>
-                    <div className="card-body d-grid gap-2">
-                      <Link to="/allusers" className="btn btn-outline-primary">🗂️ View All Users</Link>
-                      <Link to="/fetchusers" className="btn btn-outline-primary">🔍 Fetch User</Link>
-                    </div>
-                  </div>
+      {/* Stats */}
+      <div className="page-header-stats g-3 mb-4">
+        {statCards.map((stat) => (
+          <div className="" key={stat.label}>
+            <div
+              className="card card-hover"
+              style={{ padding: "20px", display: "flex", alignItems: "center", gap: "16px" }}
+            >
+              <div
+                style={{
+                  width: "48px",
+                  height: "48px",
+                  borderRadius: "var(--border-radius)",
+                  backgroundColor: stat.bg,
+                  color: stat.color,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {stat.icon}
+              </div>
+              <div>
+                <div style={{ fontSize: "1.75rem", fontWeight: "700", color: "var(--text-primary)" }}>
+                  {stat.value}
                 </div>
-                <div className="col-md-4">
-                  <div className="card h-100 border-info">
-                    <div className="card-header bg-info text-white text-center">📚 Books</div>
-                    <div className="card-body d-grid gap-2">
-                      <Link to="/allbooks" className="btn btn-outline-info">🗂️ View All Books</Link>
-                      <Link to="/bookDetails" className="btn btn-outline-info">📖 View Book Reviews</Link>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-md-4">
-                  <div className="card h-100 border-warning">
-                    <div className="card-header bg-warning text-white text-center">⭐ Reviews</div>
-                    <div className="card-body d-grid gap-2">
-                      <Link to="/allreviews" className="btn btn-outline-warning">🗂️ View All Reviews</Link>
-                      <Link to="/addreview" className="btn btn-outline-warning">➕ Add Review</Link>
-                    </div>
-                  </div>
+                <div style={{ fontSize: "0.875rem", color: "var(--text-secondary)" }}>
+                  {stat.label}
                 </div>
               </div>
-
-              <hr className="my-4" />
-
-              <h4 className="mb-3">Manage</h4>
-
-              <div className="d-grid gap-3 col-8 mx-auto">
-                <Link to="/adduser" className="btn btn-outline-success btn-lg">
-                  ➕ Add User & Library Card
-                </Link>
-                <Link to="/updateName" className="btn btn-outline-secondary btn-lg">
-                  ✏️ Update User Name
-                </Link>
-                <Link to="/deleteBook" className="btn btn-outline-danger btn-lg">
-                  ❌ Delete Book & Reviews
-                </Link>
-                <Link to="/deleteUser" className="btn btn-outline-warning btn-lg">
-                  🗑️ Delete User & Library Card
-                </Link>
-                <Link to="/addauthor" className="btn btn-outline-primary btn-lg">
-                  ✍️ Add Author & Books
-                </Link>
-                <Link to="/addbook" className="btn btn-outline-primary btn-lg">
-                  📖 Add Book to Author
-                </Link>
-              </div>
-
-              <hr className="my-4" />
-
-              <h4 className="mb-3">Demo Data</h4>
-              <p className="text-muted mb-3">Load sample data to demonstrate the system, then clear it when done.</p>
-
-              {message && (
-                <div className={`alert alert-${message.type} alert-dismissible fade show`} role="alert">
-                  {message.text}
-                  <button type="button" className="btn-close" onClick={() => setMessage("")}></button>
-                </div>
-              )}
-
-              <div className="d-flex gap-3 justify-content-center">
-                <button
-                  className="btn btn-success btn-lg"
-                  onClick={handleLoadDemo}
-                  disabled={loading}
-                >
-                  {loading ? "Working..." : "Load Demo Data"}
-                </button>
-                <button
-                  className="btn btn-danger btn-lg"
-                  onClick={handleClearDemo}
-                  disabled={loading}
-                >
-                  {loading ? "Working..." : "Clear Demo Data"}
-                </button>
-              </div>
-            </div>
-            <div className="card-footer text-muted text-center">
-              Made with ❤️ using React & Spring Boot
             </div>
           </div>
+        ))}
+      </div>
+
+      {/* Quick Actions */}
+      <div className="card mb-4" style={{ padding: "24px" }}>
+        <h3 style={{ margin: "0 0 16px", fontSize: "1.125rem", fontWeight: "600" }}>
+          Quick Actions
+        </h3>
+        <div className="row g-3">
+          {actions.map((action) => (
+            <div className="col-sm-6 col-lg-4 col-xl-3" key={action.to}>
+              <Link
+                to={action.to}
+                className="card card-hover"
+                style={{
+                  display: "block",
+                  padding: "16px",
+                  textDecoration: "none",
+                  height: "100%",
+                }}
+              >
+                <div
+                  style={{
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: "var(--border-radius)",
+                    backgroundColor: action.color + "18",
+                    color: action.color,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: "12px",
+                  }}
+                >
+                  {action.icon}
+                </div>
+                <div style={{ fontWeight: "600", color: "var(--text-primary)", marginBottom: "4px" }}>
+                  {action.label}
+                </div>
+                <div style={{ fontSize: "0.8125rem", color: "var(--text-secondary)" }}>
+                  {action.desc}
+                </div>
+              </Link>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Demo Data */}
+      <div className="card" style={{ padding: "24px" }}>
+        <h3 style={{ margin: "0 0 8px", fontSize: "1.125rem", fontWeight: "600" }}>
+          Demo Data
+        </h3>
+        <p style={{ margin: "0 0 16px", fontSize: "0.875rem", color: "var(--text-secondary)" }}>
+          Load sample data to see the system in action, then clear it when done.
+        </p>
+
+        {message && (
+          <div
+            className={message.type === "success" ? "message-success" : "message-error"}
+            style={{ marginBottom: "16px" }}
+          >
+            {message.text}
+          </div>
+        )}
+
+        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+          <button
+            className="btn btn-success"
+            onClick={handleLoadDemo}
+            disabled={loading}
+            style={{ display: "flex", alignItems: "center", gap: "8px" }}
+          >
+            {loading ? <span className="spinner" /> : <HiRefresh size={16} />}
+            {loading ? "Loading..." : "Load Demo Data"}
+          </button>
+          <button
+            className="btn btn-danger"
+            onClick={handleClearDemo}
+            disabled={loading}
+            style={{ display: "flex", alignItems: "center", gap: "8px" }}
+          >
+            {loading ? <span className="spinner" /> : <HiTrash size={16} />}
+            {loading ? "Clearing..." : "Clear Demo Data"}
+          </button>
         </div>
       </div>
     </div>
