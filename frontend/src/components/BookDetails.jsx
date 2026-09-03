@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Card, Button, Container, Form, Alert } from "react-bootstrap";
+import { Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 function BookDetails() {
@@ -43,6 +44,7 @@ function BookDetails() {
     <Container className="d-flex justify-content-center align-items-center flex-column" style={{ minHeight: "80vh" }}>
       <Card className="p-4 w-100 shadow-lg" style={{ maxWidth: "600px", backgroundColor: "rgba(255,255,255,0.95)" }}>
         <Card.Body>
+          <Link to="/" className="btn btn-outline-secondary btn-sm mb-3">&#8592; Back</Link>
           <Card.Title className="text-center mb-4">Fetch Book Details and Reviews</Card.Title>
 
           <Form.Group className="mb-3">

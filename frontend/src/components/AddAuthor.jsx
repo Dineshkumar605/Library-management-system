@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Card, Container, Form, Button, Alert } from "react-bootstrap";
+import { Link } from "react-router-dom";
 
 function AddAuthor() {
   const [authorName, setAuthorName] = useState("");
@@ -41,6 +42,7 @@ function AddAuthor() {
     <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: "80vh" }}>
       <Card className="p-4 shadow-lg" style={{ width: "100%", maxWidth: "600px", backgroundColor: "rgba(255,255,255,0.95)" }}>
         <Card.Body>
+          <Link to="/" className="btn btn-outline-secondary btn-sm mb-3">&#8592; Back</Link>
           <Card.Title className="text-center mb-4">Add Author and Books</Card.Title>
           <Form>
             <Form.Group className="mb-3">
