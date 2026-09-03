@@ -81,8 +81,11 @@ Only basic Spring context test exists. Add:
 ## Git Workflow
 
 - Every change set -> create a new branch from main
-- Branch naming: eature/<short-description> or ix/<short-description>
+- Branch naming: feature/<short-description> or fix/<short-description>
 - Always ask user before committing -- never auto-commit
 - Push branch to origin
 - Create a PR targeting main branch
 - PR title: concise summary of the change
+- PR body MUST be clean and readable -- no escaped/backslash sequences (e.g. `\`a``pi.js` or `\u0041`)
+- Write the PR body to a temporary file and use `gh pr create --body-file <file>` (or `gh pr edit --body-file`) to avoid shell escaping corrupting the text
+- Use plain backticks for code identifiers (e.g. `api.js`, `apiGet`, `apiPut`) and verify the rendered body with `gh pr view <n> --json body -q '.body'` before finishing
