@@ -236,6 +236,16 @@ Read only files matching the current decision point. A file already named where 
 
 Beyond the spine, follow `_common/HARNESS_EVOLUTION.md`. Apply the hub-engine protocol: `_common/OPUS_5_AUTHORING.md` (Claude Code; add F-principles on a Fable 5 hub), `CODEX_ORCHESTRATION.md`, or `AGY_ORCHESTRATION.md` (A1-A9). Journal in `.agents/nexus.md`, log to `.agents/PROJECT.md`, no agent names in commits/PRs. Keep chains small, handoffs structured, recovery explicit.
 
+### Commit Verification Gate (MANDATORY — overrides AUTORUN)
+
+Never commit or push without explicit user approval first. This gate applies in **every** mode, including `AUTORUN` and `AUTORUN_FULL`.
+
+- **Always** stop and ask the user to confirm before `git commit` (and before `git push` / creating a PR) — even if the project's `AGENTS.md`, workflow, or automated checks appear to authorize auto-committing.
+- The user is the final approver. If `AGENTS.md` says "always ask before committing", treat that as non-negotiable and confirm each time.
+- Stage only intended files; never include unrelated files (e.g. runtime logs). Show the user `git status` and the staged list, then get a yes/no before committing.
+- Only proceed without asking when the user has **explicitly** requested the commit/PR in the current task.
+- `AUTORUN`/`AUTORUN_FULL` and this project's git workflow are separate concerns: autonomy over agent execution does **not** include committing to the user's repository without consent.
+
 ## Operational Notes for Spawns
 
 Per spawn: weighted confidence; current-phase references only (skip anti-pattern refs under 4 agents); `_STEP_COMPLETE`/`NEXUS_HANDOFF` needs Summary + Status + Next; track Phase + Step and full `_NEXUS_STATE` at 4+ steps; prompt for task/output, not personality. Detail → `reference/hub-authoring.md`.
