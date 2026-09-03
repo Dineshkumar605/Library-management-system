@@ -108,8 +108,14 @@ body {
   border-radius: var(--border-radius); font-size: 1.25rem;
 }
 
-.form-card { max-width: 640px; margin: 0 auto; padding: var(--spacing-xl); }
-.data-card { width: 100%; padding: var(--spacing-lg); }
+.form-card, .data-card {
+  width: 100%;
+  margin: 0;
+  padding: var(--spacing-md);
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
 
 .empty-state {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
