@@ -1,1226 +1,337 @@
-# Library Management System (Full Stack)
+# Library Management System & AI Developer Workflow
 
-A full-stack **Library Management System** built with **Spring Boot** and **React.js + Bootstrap**. This project has been restructured — the Spring Boot backend now lives in the `backend/` folder and the React frontend in the `frontend/` folder.
+A full-stack **Library Management System** built with **Spring Boot** and **React**, featuring an autonomous **AI Software Developer Agent Workflow** powered by **OpenCode** (`.opencode/`) and specialized skills under `.opencode/skills/`.
 
-The project also includes an **AI Software Developer Agent workflow** using skills under `.opencode/skills/`.  
-The goal is to allow an AI orchestrator to understand development requests, investigate bugs, plan changes, implement code, add tests, verify the build, review changes, and prepare a Draft Pull Request for human approval.
-
----
-
-## Features
-
-- Add a user and automatically issue a library card
-- Fetch user details and issued library card by email
-- Update user name using email
-- Delete user and their associated library card
-- Add an author with a list of books
-- Add reviews for a specific book
-- Fetch a book and its reviews
-- Delete a book and all its associated reviews
+The AI system functions as a modular engineering team: running natively on **OpenCode CLI**, an AI Tech Lead (**Nexus**) coordinates specialized agents to investigate bugs, plan features, write production code, run test gates, review diffs, and prepare Draft Pull Requests—all driven directly from the terminal.
 
 ---
 
-## Tech Stack
+## Table of Contents
 
-| Layer | Technology |
+- [Part 1: The Application](#part-1-the-application)
+  - [Tech Stack](#tech-stack)
+  - [Project Structure](#project-structure)
+  - [Quick Start](#quick-start)
+  - [REST API Endpoints](#rest-api-endpoints)
+- [Part 2: AI Developer Automated Workflow](#part-2-ai-developer-automated-workflow)
+  - [Powered by OpenCode](#powered-by-opencode)
+  - [Core Architecture & Philosophy](#core-architecture--philosophy)
+  - [Why This AI Workflow is Better](#why-this-ai-workflow-is-better-in-simple-terms)
+  - [Specialist Agent Team](#specialist-agent-team)
+  - [End-to-End Automated Pipeline](#end-to-end-automated-pipeline)
+  - [How to Run via CLI](#how-to-run-via-cli)
+  - [Direct-Route to a Single Specialist](#direct-route-to-a-single-specialist)
+  - [Quality & Safety Gates](#quality--safety-gates)
+  - [Project-Specific Instructions (AGENTS.md)](#project-specific-instructions-agentsmd)
+
+---
+
+# Part 1: The Application
+
+### Tech Stack
+
+| Layer | Technologies |
 |---|---|
-| Backend | Spring Boot 3.5.0 |
-| Language | Java 21 |
-| ORM | Spring Data JPA + Hibernate |
-| Database | PostgreSQL |
-| Validation | Jakarta Bean Validation |
-| API Docs | Swagger / Springdoc OpenAPI 2.8.9 |
-| Frontend | React.js 19.1.0 + Bootstrap 5.3.7 |
-| Routing | React Router DOM 7.6.3 |
-| UI Components | React-Bootstrap 2.10.10 |
-| HTTP Client | Fetch API |
-| Build Tool | Maven (backend) / NPM (frontend) |
-| AI Skills | `.opencode/skills/` |
+| **Backend** | Spring Boot 3.5.0, Java 21, Spring Data JPA, Hibernate, Jakarta Bean Validation |
+| **Database** | PostgreSQL |
+| **API Documentation** | Swagger / Springdoc OpenAPI 2.8.9 (`/swagger-ui/index.html`) |
+| **Frontend** | React 19.1.0, React Router DOM 7.6.3, Bootstrap 5.3.8, React-Bootstrap, React Icons |
+| **Build Tools** | Maven (backend) / NPM (frontend) |
+| **AI Runtime** | **OpenCode CLI** (`@opencode-ai/plugin` v1.18.25) |
+| **AI Orchestration** | **OpenCode Skills** (`.opencode/skills/`) |
 
----
-
-## Project Structure
+### Project Structure
 
 ```text
-LibraryManagementSystem/
-├── backend/                          # Spring Boot backend
-│   ├── src/main/java/com/gl/lms/
-│   │   ├── controller/              # REST endpoints
-│   │   ├── service/                 # Business logic
-│   │   ├── repository/              # Data access
-│   │   ├── entity/                  # JPA entities
-│   │   ├── dto/                     # Data transfer objects
-│   │   ├── exception/               # Custom exceptions
-│   │   ├── config/                  # Configuration
-│   │   └── utility/                 # Exception handling / logging
-│   ├── src/main/resources/
-│   │   ├── application.properties   # DB config
-│   │   └── log4j2.properties        # Logging config
-│   ├── src/test/                    # Backend tests
+Library-management-system/
+├── backend/                       # Spring Boot REST API
+│   ├── src/main/java/com/gl/lms/  # Controller, Service, Repository, Entity, DTO
+│   ├── src/main/resources/        # application.properties, log4j2.properties
 │   ├── pom.xml
-│   └── AGENTS.md                    # Backend-specific AI instructions
+│   └── AGENTS.md                  # Backend AI guidelines & conventions
 │
-├── frontend/                         # React frontend
+├── frontend/                      # React SPA
 │   ├── src/
-│   │   ├── App.js                   # Router + Navbar
-│   │   ├── index.js                 # Entry point
-│   │   └── components/              # React components
-│   │       ├── HomeScreen.jsx       # Landing page
-│   │       ├── AddUser.jsx          # Create user form
-│   │       ├── AllUsers.jsx         # View all users
-│   │       ├── AddAuthor.jsx        # Add author + books
-│   │       ├── AddBook.jsx          # Add a book
-│   │       ├── AllBooks.jsx         # View all books
-│   │       ├── AllReviews.jsx       # View all reviews
-│   │       ├── AddReview.jsx        # Add book review
-│   │       ├── BookDetails.jsx      # View book details + reviews
-│   │       ├── Home.jsx             # Fetch user by email
-│   │       ├── UpdateName.jsx       # Update user name
-│   │       ├── DelUser.jsx          # Delete user
-│   │       └── DelBook.jsx          # Delete book
+│   │   ├── components/            # Sidebar, Form cards, and View tables
+│   │   ├── App.js                 # Router configuration
+│   │   └── api.js                 # Centralized fetch client
 │   ├── package.json
-│   └── AGENTS.md                    # Frontend-specific AI instructions
+│   └── AGENTS.md                  # Frontend AI guidelines & conventions
 │
-├── .opencode/
-│   └── skills/
-│       ├── nexus/
-│       ├── scout/
-│       ├── lens/
-│       ├── spark/
-│       ├── sherpa/
-│       ├── builder/
-│       ├── radar/
-│       ├── judge/
-│       ├── guardian/
-│       └── sigil/
-│
-└── README.md
+└── .opencode/                     # OpenCode CLI configuration & skills
+    ├── package.json               # OpenCode plugin dependencies (@opencode-ai/plugin)
+    └── skills/                    # Multi-agent skills and shared contracts
+        ├── _common/               # Spine contracts (gates, handoffs, git guidelines)
+        └── [nexus, scout, lens, spark, sherpa, builder, radar, judge, guardian, sigil]
 ```
 
----
+### Quick Start
 
-# Database Configuration
-
-## Prerequisites
-
-1. Install PostgreSQL.
-2. Create the database:
-
+#### 1. Database Setup
+Ensure PostgreSQL is running and create the database:
 ```sql
 CREATE DATABASE "Library_Mgmt_System_DB";
 ```
-
-## Configure Connection
-
-Update `backend/src/main/resources/application.properties`:
-
+Configure credentials in `backend/src/main/resources/application.properties`:
 ```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/Library_Mgmt_System_DB
 spring.datasource.username=postgres
 spring.datasource.password=your_password
-
 spring.jpa.hibernate.ddl-auto=update
 ```
 
-> `ddl-auto=update` is convenient for local development. For production systems, database migrations should normally be managed explicitly.
-
----
-
-# How to Run
-
-## 1. Clone the Repository
-
-```bash
-git clone https://github.com/thimothybabu123/LibraryManagementSystem
-cd LibraryManagementSystem
-```
-
-## 2. Run Backend
-
-Navigate to the `backend/` folder:
-
+#### 2. Run Backend
 ```bash
 cd backend
-```
-
-Build:
-
-```bash
 mvn clean install
-```
-
-Run:
-
-```bash
 mvn spring-boot:run
+# Server runs on http://localhost:8080 | Swagger UI: http://localhost:8080/swagger-ui/index.html
 ```
 
-Backend:
-
-```text
-http://localhost:8080
-```
-
-## 3. Run Frontend
-
-Navigate to the `frontend/` folder:
-
+#### 3. Run Frontend
 ```bash
 cd frontend
 npm install
 npm start
+# Client runs on http://localhost:3000
 ```
 
-Frontend:
-
-```text
-http://localhost:3000
-```
-
-## 4. Swagger UI
-
-When the backend is running:
-
-```text
-http://localhost:8080/swagger-ui/index.html
-```
-
----
-
-# Backend API Endpoints
+### REST API Endpoints
 
 | Method | Endpoint | Description |
 |---|---|---|
-| POST | `/LMS/add-user-and-issue-library-card` | Create user and issue library card |
-| GET | `/LMS/fetch-user-and-issued-library-card/{email}` | Fetch user and card by email |
-| GET | `/LMS/fetch-all-users` | Fetch all users and their library cards |
-| GET | `/LMS/fetch-all-books` | Fetch all books with author names |
-| GET | `/LMS/fetch-all-reviews` | Fetch all reviews with book titles |
-| PUT | `/LMS/update-name/{email}/{updatedName}` | Update user name |
-| DELETE | `/LMS/delete-user/{email}` | Delete user and library card |
-| POST | `/LMS/add-author-and-books` | Add author with multiple books |
-| POST | `/LMS/add-reviews/{title}` | Add review to a book |
-| GET | `/LMS/fetchBookDetailsAndReviews/{title}` | Get book details with reviews |
-| DELETE | `/LMS/delete-book/{title}` | Delete book and its reviews |
+| `POST` | `/LMS/add-user-and-issue-library-card` | Create user and issue library card |
+| `GET` | `/LMS/fetch-user-and-issued-library-card/{email}` | Fetch user and card by email |
+| `GET` | `/LMS/fetch-all-users` | Fetch all users with their library cards |
+| `PUT` | `/LMS/update-name/{email}/{updatedName}` | Update user name |
+| `DELETE` | `/LMS/delete-user/{email}` | Delete user and associated card |
+| `POST` | `/LMS/add-author-and-books` | Add author with a list of books |
+| `POST` | `/LMS/add-book/{authorName}` | Add a single book to an existing author |
+| `GET` | `/LMS/fetch-all-books` | Fetch all books with author names |
+| `POST` | `/LMS/add-reviews/{title}` | Add review to a book |
+| `GET` | `/LMS/fetchBookDetailsAndReviews/{title}` | Get book details along with reviews |
+| `GET` | `/LMS/fetch-all-reviews` | Fetch all reviews across books |
+| `DELETE` | `/LMS/delete-book/{title}` | Delete a book and its reviews |
+| `POST` | `/LMS/demo/add` | Seed sample library demo data |
+| `DELETE` | `/LMS/demo/clear` | Clear all seeded demo data |
 
 ---
 
-# Entity Relationships
+# Part 2: AI Developer Automated Workflow
 
-- **User ↔ LibraryCard** — One-to-One
-- **Author → Books** — One-to-Many
-- **Book → Reviews** — One-to-Many
+## Powered by OpenCode
 
----
+This entire multi-agent workflow is built natively on **OpenCode**.
 
-# Sample JSON Requests
+Configured under the `.opencode/` directory using `@opencode-ai/plugin`, OpenCode serves as the core CLI execution runtime. It supplies the workspace tools (file reading/editing, terminal command execution, test running) and subagent management that enable our AI Tech Lead (**Nexus**) to run and coordinate the specialist team.
 
-## Add User and Issue Library Card
+## Core Architecture & Philosophy
 
-```json
-{
-  "name": "Alice Smith",
-  "email": "alice@example.com",
-  "libraryCardsDTO": {
-    "issueDate": "2025-07-01",
-    "expiryDate": "2026-07-01"
-  }
-}
-```
+Standard AI assistants operate as monolithic single agents: one agent reads files, modifies code, tests its own changes, and commits—often suffering from **context pollution**, **hallucinations**, and **self-confirmation bias**.
 
-## Add Author and Books
+This repository implements a **multi-specialist autonomous team**:
 
-```json
-{
-  "name": "J.K. Rowling",
-  "booksDTOS": [
-    {
-      "title": "Harry Potter and the Philosopher's Stone"
-    },
-    {
-      "title": "Harry Potter and the Chamber of Secrets"
-    }
-  ]
-}
-```
+1. **Hub-and-Spoke Orchestration:** **Nexus** acts as the AI Tech Lead. It analyzes your natural-language CLI prompt, selects the **minimum viable chain** of specialists, and coordinates execution.
+2. **Context Isolation:** Each specialist runs in its own session with dedicated instructions (`SKILL.md`), passing only clean state summaries (`NEXUS_HANDOFF`) back to Nexus.
+3. **Producer $\neq$ Verifier:** The agent that writes the code (`Builder`) is never allowed to approve it. Testing is owned by `Radar`, and review is owned by `Judge`.
+4. **Enforced Safety Gates:** No code reaches `main` or gets committed without passing real build verification and explicit human sign-off.
 
-## Add Book Review
+### Why This AI Workflow is Better (In Simple Terms)
 
-```json
-{
-  "rating": 5,
-  "comment": "Fantastic fantasy novel!"
-}
-```
+If you have used tools like ChatGPT or Copilot, you know a single AI can make mistakes, guess blindly, or claim code works when it doesn't. Instead of one AI doing everything alone, this system works like a **real software team**:
+
+1. **The Writer Never Approves Their Own Work:**  
+   Just like a chef shouldn't inspect their own food hygiene, the AI that writes code (`Builder`) cannot approve it. A separate AI (`Radar`) tests it, and an AI reviewer (`Judge`) checks it for bugs.
+
+2. **Diagnose Before Operating (No Blind Guessing):**  
+   When something breaks, standard AI starts changing code randomly hoping it works. Here, the investigator AI (`Scout`) is not allowed to touch code—it must find the exact root cause first, like a doctor doing an X-ray before surgery.
+
+3. **Automatic Safety Stop (No Endless Loops):**  
+   If the AI cannot fix a problem after 3 attempts, it stops, raises its hand, and asks a human for help. It never gets stuck in endless loops that waste time.
+
+4. **Human Always Has the Final Say:**  
+   The AI is strictly forbidden from saving or pushing changes to the project without your approval. It always stops, shows you what it did, and waits for your "Yes".
 
 ---
 
-# AI Software Developer Agent System
+## Specialist Agent Team
 
-## Goal
+Located in `.opencode/skills/`, each skill owns a single phase of the development lifecycle:
 
-The AI agent workflow is designed to support software-development tasks such as:
+| Skill | Role | Focus | Direct CLI Trigger |
+|---|---|---|---|
+| **Nexus** | Orchestrator & AI Lead | Intent classification, chain selection, handoff validation, and delivery. | `/nexus "<task>"` |
+| **Lens** | Codebase Explorer | Architecture mapping, dependency tracing, data flow discovery *(read-only)*. | `/lens "<question>"` |
+| **Scout** | Bug Investigator | Root Cause Analysis (RCA) and reproduction steps without editing code *(read-only)*. | `/scout "<error>"` |
+| **Spark** | Feature Analyst | Requirements refinement, acceptance criteria, and feature specs *(read-only)*. | `/spark "<idea>"` |
+| **Sherpa** | Technical Planner | Decomposes complex tasks into $\le$15-minute atomic steps and prevents scope drift. | `/sherpa "<task>"` |
+| **Builder** | Software Developer | Implements production code, business logic, entities, DTOs, and bug fixes. | `/builder "<action>"` |
+| **Radar** | Test Engineer | Writes unit/integration tests, regression tests, edge cases, and verifies coverage. | `/radar "<test-goal>"` |
+| **Judge** | Senior Code Reviewer | Multi-axis review: correctness, security, clean code, and zero dead code. | `/judge` |
+| **Guardian** | Git & PR Gatekeeper | Branch strategy, Conventional Commits, and Draft PR generation with clean bodies. | `/guardian "<action>"` |
+| **Sigil** | Meta-Skill Generator | Generates or updates project-specific agent instructions and `AGENTS.md` files. | `/sigil` |
 
-- Understand an existing project or file
-- Analyze a bug
-- Find a root cause
-- Analyze a feature request
-- Prepare an implementation plan
-- Modify source code
-- Add or improve tests
-- Compile and verify the application
-- Review code changes
-- Prepare Git commits and Draft Pull Requests
-- Later integrate with ticket systems such as Jira or ClickUp
+---
 
-The main entry point is **Nexus**.
-
-A developer or ticket system gives Nexus a requirement in normal language.
-
-Example:
+## End-to-End Automated Pipeline
 
 ```text
-LIB-101
-
-Bug:
-Returning an overdue book causes HTTP 500.
-
-Expected:
-The book should be returned and the fine should be calculated.
-```
-
-Nexus decides which specialized agents are required.
-
----
-
-# AI Skills
-
-| Skill | Role | Main Use Case |
-|---|---|---|
-| **Nexus** | Orchestrator / AI Tech Lead | Understand the request and decide which agents should run |
-| **Scout** | Bug Investigator | Find why something is broken and identify the root cause |
-| **Lens** | Codebase Explorer | Understand existing files, modules, architecture, and data flow |
-| **Spark** | Feature Analyst | Refine a new or unclear feature idea into a clearer requirement |
-| **Sherpa** | Technical Planner | Break a complex change into small implementation steps |
-| **Builder** | Software Developer | Create or modify production code |
-| **Radar** | Test Engineer | Add tests, run tests, check edge cases, and improve coverage |
-| **Judge** | Senior Code Reviewer | Review changes for correctness, quality, unnecessary code, and risk |
-| **Guardian** | Git / PR Specialist | Prepare branch strategy, commits, and Draft Pull Request details |
-| **Sigil** | Skill Generator | Generate or improve project-specific skills and agent instructions |
-
----
-
-# Simple Meaning of Each Agent
-
-```text
-Nexus    → Decide who should work
-Scout    → Find the bug
-Lens     → Understand the code
-Spark    → Understand/refine the feature
-Sherpa   → Make the technical plan
-Builder  → Write or fix the code
-Radar    → Test the code
-Judge    → Review the code
-Guardian → Handle Git / PR preparation
-Sigil    → Generate or improve project-specific AI instructions
+                  Developer Prompt (Direct CLI Command)
+                                    │
+                                    ▼
+                              ┌───────────┐
+                              │   NEXUS   │ (AI Tech Lead)
+                              └─────┬─────┘
+           ┌────────────────────────┼────────────────────────┐
+           │                        │                        │
+         [BUG]                  [FEATURE]              [EXPLANATION]
+           ▼                        ▼                        ▼
+      ┌─────────┐              ┌─────────┐              ┌─────────┐
+      │  Scout  │ (RCA)        │Lens /   │              │  Lens   │ ──► Done
+      └────┬────┘              │Spark    │              └─────────┘
+           │                   └────┬────┘
+           │                        ▼
+           │                   ┌─────────┐
+           │                   │ Sherpa  │ (Atomic Steps)
+           │                   └────┬────┘
+           └───────────┬────────────┘
+                       ▼
+                 ┌───────────┐
+                 │ Guardian  │ (Creates task branch: fix/* or feature/*)
+                 └─────┬─────┘
+                       ▼
+                 ┌───────────┐
+                 │  Builder  │ (Implements code changes)
+                 └─────┬─────┘
+                       ▼
+                 ┌───────────┐
+                 │   Radar   │ (Adds unit / regression tests)
+                 └─────┬─────┘
+                       ▼
+             [    BUILD GATE    ] ── FAIL ──► (Back to Builder; max 3 retries)
+             (mvn clean verify)
+                       │ PASS
+                       ▼
+                 ┌───────────┐
+                 │   Judge   │ (Reviews diff: correct, secure, clean)
+                 └─────┬─────┘
+                       │ PASS (Changes Requested ──► Back to Builder)
+                       ▼
+                 ┌───────────┐
+                 │ Guardian  │ (Formats Conventional Commit & Draft PR)
+                 └─────┬─────┘
+                       ▼
+         [ MANDATORY COMMIT GATE ] (Halts & requires human [Yes/No] approval)
+                       │ APPROVED
+                       ▼
+                 ┌───────────┐
+                 │ Draft PR  │ ──► Human Review & Merge
+                 └───────────┘
 ```
 
 ---
 
-# Important Design Principle
+## How to Run via CLI
 
-Nexus should **not always call every agent**.
-
-It should select only the agents required for the request.
-
-Examples:
-
-## Explain a File
-
-Request:
-
-```text
-Explain how BookService.java works.
-```
-
-Possible flow:
-
-```text
-Nexus
-  ↓
-Lens
-  ↓
-Done
-```
-
-## Investigate an Error
-
-Request:
-
-```text
-Why am I getting this NullPointerException?
-```
-
-Possible flow:
-
-```text
-Nexus
-  ↓
-Scout
-  ↓
-Done
-```
-
-## Find and Fix a Bug
-
-Request:
-
-```text
-Find why the return-book API fails and fix it.
-```
-
-Possible flow:
-
-```text
-Nexus
-  ↓
-Scout
-  ↓
-Builder
-  ↓
-Radar
-  ↓
-Judge
-```
-
-## Implement a Large Feature
-
-Request:
-
-```text
-Implement book reservation functionality.
-```
-
-Possible flow:
-
-```text
-Nexus
-  ↓
-Lens
-  ↓
-Spark
-  ↓
-Sherpa
-  ↓
-Builder
-  ↓
-Radar
-  ↓
-Build Gate
-  ↓
-Judge
-  ↓
-Guardian
-```
-
----
-
-# Optimized End-to-End Workflow
-
-```text
-                 Jira / ClickUp / Developer
-                           │
-                           ▼
-                     Ticket Connector
-                           │
-                           ▼
-                        NEXUS
-                   Understand Request
-                           │
-          ┌────────────────┼────────────────┐
-          │                │                │
-         Bug             Feature        Explanation
-          │                │                │
-        Scout          Lens / Spark         Lens
-          │                │                │
-          └─────────┬──────┘                └──► Done
-                    │
-              Sherpa if needed
-                    │
-                    ▼
-                Guardian
-              Create Branch
-                    │
-                    ▼
-                 Builder
-              Modify Code
-                    │
-                    ▼
-                  Radar
-             Add / Run Tests
-                    │
-                    ▼
-               BUILD GATE
-              mvn clean verify
-                    │
-             ┌──────┴──────┐
-             │             │
-            FAIL          PASS
-             │             │
-             ▼             ▼
-          Builder         Judge
-             ▲        Review Changes
-             │             │
-             │      ┌──────┴──────┐
-             │      │             │
-             └──── FAIL          PASS
-                                  │
-                                  ▼
-                              Guardian
-                                  │
-                            Commit / Push
-                                  │
-                                  ▼
-                              Draft PR
-                                  │
-                                  ▼
-                           Human Review
-                                  │
-                                  ▼
-                                Merge
-```
-
----
-
-# Bug Fix Workflow
-
-Example ticket:
-
-```text
-LIB-101
-
-Bug:
-User cannot return an overdue book.
-
-Actual:
-API returns HTTP 500.
-
-Expected:
-Book should be returned and fine should be calculated.
-```
-
-Recommended flow:
-
-```text
-Nexus
-  ↓
-Classify as Bug
-  ↓
-Guardian
-Create working branch
-  ↓
-Scout
-Investigate and find root cause
-  ↓
-Sherpa
-Create fix plan if the issue is complex
-  ↓
-Builder
-Implement the fix
-  ↓
-Radar
-Add regression tests and run tests
-  ↓
-Build Gate
-mvn clean verify
-  ↓
-Judge
-Review the change
-  ↓
-Guardian
-Commit + Push + Draft PR
-  ↓
-Human Review
-```
-
-### Example Scout Result
-
-```text
-Root Cause:
-
-FineCalculationService assumes FineConfiguration always exists.
-
-For older borrowing records, the configuration can be missing.
-
-The code calls a method on a null object and causes HTTP 500.
-```
-
-### Example Sherpa Plan
-
-```text
-1. Update FineCalculationService.
-2. Handle missing fine configuration safely.
-3. Preserve existing return behavior.
-4. Add an overdue-book regression test.
-5. Add a missing-configuration test.
-6. Run the complete backend test suite.
-```
-
----
-
-# Feature Implementation Workflow
-
-Example ticket:
-
-```text
-LIB-200
-
-Feature:
-Allow users to reserve books that are currently unavailable.
-```
-
-Recommended flow:
-
-```text
-Nexus
-  ↓
-Classify as Feature
-  ↓
-Guardian
-Create working branch
-  ↓
-Lens
-Understand the current borrowing flow
-  ↓
-Spark
-Clarify the feature when requirement is incomplete
-  ↓
-Sherpa
-Create implementation plan
-  ↓
-Builder
-Implement feature
-  ↓
-Radar
-Add and run tests
-  ↓
-Build Gate
-mvn clean verify
-  ↓
-Judge
-Review implementation
-  ↓
-Guardian
-Commit + Push + Draft PR
-  ↓
-Human Review
-```
-
-For a very small and clear feature, Nexus may skip Spark or Sherpa.
-
----
-
-# Build and Test Gate
-
-The AI should never assume that code compiles.
-
-It must execute the real project build.
-
-Backend verification:
+You trigger the workflow directly in your terminal using **OpenCode CLI**:
 
 ```bash
-mvn clean verify
+# 1. Open your terminal in the repository root and start OpenCode:
+opencode
 ```
 
-The workflow can continue only when:
-
-```text
-BUILD SUCCESS
-Tests passed
+### 1. Bug Fix
+```bash
+/nexus "Bug: Returning an overdue book causes HTTP 500. Find root cause, fix it, add tests, and prepare PR."
 ```
+* **Execution:** `Guardian` (creates branch) $\rightarrow$ `Scout` (RCA) $\rightarrow$ `Builder` (fix) $\rightarrow$ `Radar` (regression test) $\rightarrow$ `Build Gate` $\rightarrow$ `Judge` (review) $\rightarrow$ `Guardian` (PR).
 
-If the build or tests fail:
+### 2. Feature Implementation
+```bash
+/nexus "Feature: Implement book reservation functionality for users when all copies are checked out."
+```
+* **Execution:** `Guardian` (creates branch) $\rightarrow$ `Lens` (explore) $\rightarrow$ `Spark` (spec) $\rightarrow$ `Sherpa` (atomic plan) $\rightarrow$ `Builder` (code) $\rightarrow$ `Radar` (tests) $\rightarrow$ `Build Gate` $\rightarrow$ `Judge` $\rightarrow$ `Guardian` (PR).
 
-```text
-Radar / Build Gate
-       ↓
-      FAIL
-       ↓
-     Nexus
-       ↓
-    Builder
-Fix the problem
-       ↓
-     Radar
-       ↓
-Build again
+### 3. Refactoring
+```bash
+/nexus "Refactor: Extract exception response mapping in ControllerException into modular handler methods."
+```
+* **Execution:** `Lens` (baseline check) $\rightarrow$ `Builder` (refactor) $\rightarrow$ `Radar` (parity test) $\rightarrow$ `Build Gate` $\rightarrow$ `Judge` $\rightarrow$ `Guardian` (PR).  
+*(Note: Scout and Spark are skipped—Nexus automatically selects only what is necessary).*
+
+### 4. Autonomy Execution Modes
+
+Prefix your command to adjust the level of human interaction:
+
+| Mode | Command Syntax | Behavior |
+|---|---|---|
+| **AUTORUN_FULL** *(Default)* | `/nexus <task>` | Fully autonomous pipeline; pauses only at the final Commit Verification Gate. |
+| **AUTORUN** | `## NEXUS_AUTORUN /nexus <task>` | Autonomous for straightforward tasks; auto-switches to Guided if complexity is high. |
+| **Guided** | `## NEXUS_GUIDED /nexus <task>` | Pauses for confirmation at major milestones (e.g. before modifying code). |
+| **Interactive** | `## NEXUS_INTERACTIVE /nexus <task>` | Step-by-step pair-programming mode; confirms each individual tool call. |
+
+---
+
+## Direct-Route to a Single Specialist
+
+When you have a quick or narrowly focused task, **bypass Nexus** to eliminate coordination overhead and save tokens:
+
+```bash
+# Codebase exploration (Lens)
+/lens "Explain how WebConfig and CORS are configured between frontend and backend"
+
+# Root cause diagnosis (Scout)
+/scout "Why does deleting a user fail when the user has an active library card?"
+
+# Direct code edit (Builder)
+/builder "Add @Pattern validation to authorName in BooksDTO to disallow special characters"
+
+# Test coverage (Radar)
+/radar "Write unit tests for LibraryManagementSystemServiceImpl.updateName using Mockito"
+
+# Code review (Judge)
+/judge "Review my current git diff against main before I commit"
+
+# Commit & PR packaging (Guardian)
+/guardian "Prepare Conventional Commit and Draft PR summary for the active branch"
 ```
 
 ---
 
-# Automatic Retry Policy
+## Quality & Safety Gates
 
-AI-generated code may not work correctly on the first attempt.
+To ensure code safety, the system enforces non-negotiable governance gates:
 
-Recommended retry flow:
+### 1. Mandatory Commit Verification Gate
+Even in `AUTORUN_FULL`, **the AI cannot commit, push, or open a PR without human consent**:
+1. It runs `git status` and presents the exact files to be staged.
+2. It displays the proposed Conventional Commit message and Draft PR body.
+3. It **stops and waits** for explicit user confirmation (`[Yes / No]`).
 
-```text
-Builder
-  ↓
-Radar
-  ↓
-FAIL
-  ↓
-Builder
-  ↓
-Radar
-  ↓
-Build
+### 2. Real Build Gate
+Code is never assumed to work. Before code review or PR preparation, the pipeline executes:
+```bash
+mvn clean verify    # Backend validation
+npm test            # Frontend validation
 ```
 
-The same rule applies to code review:
+### 3. Circuit Breaker & Retry Policy
+If the build fails or `Judge` requests changes:
+* The error is automatically routed back to `Builder` to fix.
+* **Safety limit:** Maximum of **3 automatic retry attempts**. If still failing after 3 attempts, automation stops and escalates to a human engineer, preventing infinite token loops.
 
-```text
-Judge
-  ↓
-REQUEST CHANGES
-  ↓
-Builder
-  ↓
-Radar
-  ↓
-Build
-  ↓
-Judge again
-```
-
-Recommended safety limit:
-
-```text
-Maximum automatic fix attempts: 3
-```
-
-After three unsuccessful attempts:
-
-```text
-Nexus
-  ↓
-STOP AUTOMATION
-  ↓
-Human Developer Required
-```
-
-This avoids endless AI modification loops.
+### 4. Branch & PR Hygiene
+* Commits directly to `main` are strictly prohibited.
+* Work is always isolated to `feature/*` or `fix/*` branches.
+* All work concludes in a **Draft Pull Request** for human review and final merge.
+* PR bodies are written using temporary body files (`gh pr create --body-file`) to prevent shell-escaping corruption.
 
 ---
 
-# Code Review Workflow
+## Project-Specific Instructions (AGENTS.md)
 
-```text
-Nexus
-  ↓
-Judge
-Review current changes
-  ↓
-┌────────────────────┐
-│ APPROVE            │
-│ REQUEST CHANGES    │
-│ BLOCK              │
-└────────────────────┘
-```
+Project conventions and rules are recorded in:
+* [`backend/AGENTS.md`](backend/AGENTS.md) — Spring Boot conventions, Lombok rules, exception handling, and Maven commands.
+* [`frontend/AGENTS.md`](frontend/AGENTS.md) — React patterns, Bootstrap styling rules, and fetch API usage.
 
-If changes are requested:
-
-```text
-Judge
-  ↓
-Builder
-Apply valid findings
-  ↓
-Radar
-Run tests
-  ↓
-Build Gate
-  ↓
-Judge
-Re-review
-```
-
-Only an approved change should continue to Git / PR preparation.
-
----
-
-# Git Workflow
-
-AI changes must never be made directly on `main`.
-
-Recommended sequence:
-
-```text
-main
-  ↓
-Create working branch
-  ↓
-Analyze
-  ↓
-Implement
-  ↓
-Test
-  ↓
-Review
-  ↓
-Commit
-  ↓
-Push
-  ↓
-Draft PR
-```
-
-Example branches:
-
-```text
-bugfix/LIB-101-overdue-return
-feature/LIB-200-book-reservation
-```
-
-Example commit:
-
-```text
-fix: handle overdue book return LIB-101
-```
-
----
-
-# Draft Pull Request
-
-The initial AI workflow should create a **Draft PR**, not automatically merge code.
-
-Example:
-
-```text
-Title:
-LIB-101 Fix overdue book return failure
-```
-
-Recommended PR description:
-
-```text
-Ticket:
-LIB-101
-
-Problem:
-Returning an overdue book caused HTTP 500.
-
-Root Cause:
-Fine configuration could be missing for older borrowing records.
-
-Solution:
-Added safe handling in fine calculation.
-
-Files Changed:
-- FineCalculationService.java
-- BookReturnService.java
-- BookReturnServiceTest.java
-
-Tests:
-Passed
-
-Build:
-mvn clean verify → SUCCESS
-
-AI Review:
-APPROVED
-
-Status:
-Ready for human review.
-```
-
-A human developer remains responsible for final approval and merge.
-
----
-
-# External Ticket Integration
-
-Nexus does not automatically read Jira or ClickUp just because the skills exist.
-
-A connector layer is required.
-
-```text
-Jira / ClickUp
-      ↓
-Ticket API / Webhook
-      ↓
-Ticket Connector
-      ↓
-Normalized Ticket Context
-      ↓
-Nexus
-```
-
-Recommended ticket information:
-
-```text
-Ticket ID
-Ticket Type
-Title
-Description
-Acceptance Criteria
-Priority
-Comments
-Attachments
-Repository
-Target Branch
-```
-
-Example normalized input:
-
-```text
-Ticket ID: LIB-101
-Type: Bug
-Title: Unable to return overdue book
-
-Description:
-The return API responds with HTTP 500 for overdue books.
-
-Acceptance Criteria:
-- User can return overdue books
-- Fine is calculated correctly
-- Existing normal-return behavior still works
-```
-
----
-
-# GitHub Integration
-
-Guardian should decide and validate Git/PR strategy, while a real Git/GitHub execution layer performs the commands.
-
-```text
-Guardian
-   ↓
-Git / GitHub Connector
-   ↓
-Repository
-```
-
-Possible actions:
-
-```text
-Create branch
-Commit changes
-Push branch
-Create Draft PR
-Add PR description
-Link ticket
-```
-
-This separates:
-
-```text
-AI Decision
-```
-
-from:
-
-```text
-Real External-System Execution
-```
-
----
-
-# Safety Rules
-
-The AI workflow should follow these rules:
-
-1. Never push directly to `main`.
-2. Never automatically merge a PR in the first POC.
-3. Always work on a ticket-specific branch.
-4. Always run tests after code changes.
-5. Always run the real build before creating a PR.
-6. Always review AI-generated changes.
-7. Limit automatic correction attempts.
-8. Stop and request human help when requirements are unclear or repeated attempts fail.
-9. Do not expose API keys, tokens, database passwords, or other secrets to generated code or logs.
-10. Keep Git, Jira, ClickUp, and other external credentials outside the repository.
-
----
-
-# AGENTS.md Files
-
-The project contains project-specific agent instructions:
-
-```text
-backend/AGENTS.md
-frontend/AGENTS.md
-```
-
-These files provide information such as:
-
-- Project architecture
-- Coding conventions
-- Build commands
-- Test commands
-- Backend patterns
-- Frontend patterns
-- Important project restrictions
-- Existing reusable components
-
-These instructions help the AI agents work consistently with the existing codebase instead of inventing new patterns unnecessarily.
-
----
-
-# Sigil Workflow
-
-Sigil is used to create or improve project-specific agent instructions.
-
-```text
-Nexus
-  ↓
-Lens
-Understand project conventions
-  ↓
-Sigil
-Generate / update project-specific skills
-  ↓
-Review generated instructions
-  ↓
-Update AGENTS.md / local skills
-```
-
-Sigil should not normally be part of every bug or feature workflow.
-
-It is mainly useful when:
-
-- Starting AI support for a new repository
-- Project conventions change
-- New architecture is introduced
-- Existing agent instructions become outdated
-
----
-
-# Optional Future Security Review
-
-A dedicated security-review agent can be added later for security-sensitive changes.
-
-Example use cases:
-
-- Authentication
-- Authorization
-- JWT
-- Password handling
-- Secrets
-- PII
-- File upload
-- SQL changes
-- External API credentials
-
-Possible future flow:
-
-```text
-Builder
-  ↓
-Radar
-  ↓
-Build Gate
-  ↓
-Judge
-  ↓
-Security Review
-  ↓
-Guardian
-```
-
-This does not need to be mandatory for the first POC.
-
----
-
-# Recommended POC Roadmap
-
-## Phase 1 — Local AI Developer
-
-Goal:
-
-```text
-Manual Requirement
-      ↓
-Nexus
-      ↓
-Agents
-      ↓
-Local Code Changes
-      ↓
-Tests
-      ↓
-Build
-      ↓
-Review
-```
-
-No Jira/ClickUp integration yet.
-
-Success criteria:
-
-- Nexus understands a task
-- Correct agents are selected
-- Builder can modify the project
-- Radar can create/run tests
-- Maven build passes
-- Judge reviews changes
-
----
-
-## Phase 2 — Git Automation
-
-Add:
-
-```text
-Branch creation
-Commit
-Push
-Draft PR
-```
-
-Success criteria:
-
-- AI never modifies `main`
-- Draft PR contains useful change summary
-- Human can easily review the result
-
----
-
-# Example End-to-End POC
-
-Ticket:
-
-```text
-LIB-101
-
-Bug:
-Returning an overdue book causes HTTP 500.
-```
-
-Execution:
-
-```text
-Ticket
-  ↓
-Nexus
-  ↓
-Classify: BUG
-  ↓
-Guardian
-Create bugfix/LIB-101-overdue-return
-  ↓
-Scout
-Find root cause
-  ↓
-Sherpa
-Prepare fix plan
-  ↓
-Builder
-Modify code
-  ↓
-Radar
-Add regression test
-  ↓
-mvn clean verify
-  ↓
-Judge
-Review changes
-  ↓
-Guardian
-Commit + Push + Draft PR
-  ↓
-Human Review
-```
-
-Result:
-
-```text
-Ticket analyzed
-Root cause documented
-Code fixed
-Regression test added
-Build passed
-Code reviewed
-Draft PR created
-Human approves final merge
-```
-
----
-
-# Validation and Exception Handling
-
-Current project features include:
-
-- Jakarta Bean Validation on DTOs
-- Custom `LibraryManagementSystemException`
-- Global exception handling with `@RestControllerAdvice`
-- AOP logging for service-layer exceptions
-
----
-
-# Final AI Architecture
-
-```text
-                ┌──────────────────────┐
-                │ Jira / ClickUp / Dev │
-                └──────────┬───────────┘
-                           │
-                           ▼
-                ┌──────────────────────┐
-                │   Ticket Connector   │
-                └──────────┬───────────┘
-                           │
-                           ▼
-                     ┌───────────┐
-                     │   NEXUS   │
-                     │ AI Lead   │
-                     └─────┬─────┘
-                           │
-          ┌────────────────┼─────────────────┐
-          │                │                 │
-        Scout             Lens             Spark
-       Bug RCA        Understand Code    Feature Spec
-          │                │                 │
-          └────────────────┼─────────────────┘
-                           │
-                        Sherpa
-                     Plan if needed
-                           │
-                           ▼
-                        Builder
-                       Write Code
-                           │
-                           ▼
-                         Radar
-                         Tests
-                           │
-                           ▼
-                       Build Gate
-                    mvn clean verify
-                           │
-                           ▼
-                         Judge
-                      Code Review
-                           │
-                     ┌─────┴─────┐
-                     │           │
-                    FAIL        PASS
-                     │           │
-                     ▼           ▼
-                  Builder     Guardian
-                     ▲       Git / PR Prep
-                     │           │
-                     └───────────┤
-                                 ▼
-                         GitHub Connector
-                                 │
-                                 ▼
-                             Draft PR
-                                 │
-                                 ▼
-                          Human Developer
-                                 │
-                                 ▼
-                               Merge
-```
+When repository architecture or conventions evolve, the **Sigil** agent (`/sigil`) can be run to automatically update these instruction files so the entire agent team stays aligned with the codebase.
