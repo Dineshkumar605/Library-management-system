@@ -36,7 +36,7 @@ function AllUsers() {
       {error && <Alert variant="danger">{error}</Alert>}
 
       {!loading && users.length > 0 && (
-        <div style={{ overflowX: "auto" }}>
+        <div className="table-responsive-wrapper table-mobile-cards">
           <table className="table table-striped table-hover">
             <thead>
               <tr>
@@ -51,12 +51,12 @@ function AllUsers() {
             <tbody>
               {users.map((user, index) => (
                 <tr key={user.email}>
-                  <td>{index + 1}</td>
-                  <td style={{ fontWeight: "500" }}>{user.name}</td>
-                  <td>{user.email}</td>
-                  <td><code style={{ fontSize: "0.8125rem" }}>{user.libraryCardsDTO.id}</code></td>
-                  <td>{user.libraryCardsDTO.issueDate}</td>
-                  <td>
+                  <td data-label="#">{index + 1}</td>
+                  <td data-label="Name" style={{ fontWeight: "500" }}>{user.name}</td>
+                  <td data-label="Email" style={{ wordBreak: "break-all" }}>{user.email}</td>
+                  <td data-label="Card ID"><code style={{ fontSize: "0.8125rem" }}>{user.libraryCardsDTO.id}</code></td>
+                  <td data-label="Issue Date">{user.libraryCardsDTO.issueDate}</td>
+                  <td data-label="Expiry Date">
                     {user.libraryCardsDTO.expiryDate}{" "}
                     {new Date(user.libraryCardsDTO.expiryDate) < new Date() && (
                       <Badge bg="danger" style={{ marginLeft: "4px" }}>Expired</Badge>

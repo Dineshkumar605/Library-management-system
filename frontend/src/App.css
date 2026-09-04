@@ -1,3 +1,7 @@
+/* ========================================
+   App Layout - Responsive
+   ======================================== */
+
 .app-layout {
   display: flex;
   min-height: 100vh;
@@ -23,21 +27,6 @@
   margin: 0 20px;
   display: flex;
   flex-wrap: wrap;
-}
-
-@media (max-width: 768px) {
-  .main-content {
-    padding: var(--spacing-md);
-  }
-
-  .sidebar-component {
-    position: fixed;
-    transform: translateX(-100%);
-  }
-
-  .sidebar-component.sidebar-open {
-    transform: translateX(0);
-  }
 }
 
 .page-container {
@@ -72,4 +61,78 @@
   color: var(--primary);
   border-radius: var(--border-radius);
   font-size: 1.25rem;
+}
+
+/* ========================================
+   Tablet (<= 992px) - Sidebar collapses
+   ======================================== */
+@media (max-width: 992px) {
+  .sidebar-component {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform var(--transition-normal);
+  }
+
+  .sidebar-component.sidebar-open {
+    transform: translateX(0);
+  }
+
+  .main-content {
+    width: 100%;
+  }
+
+  .page-container {
+    padding: var(--spacing-md);
+  }
+}
+
+/* ========================================
+   Mobile (<= 768px)
+   ======================================== */
+@media (max-width: 768px) {
+  .page-container {
+    padding: var(--spacing-md);
+  }
+
+  .page-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .page-header .icon {
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+  }
+}
+
+/* ========================================
+   Small Mobile (<= 576px)
+   ======================================== */
+@media (max-width: 576px) {
+  .page-container {
+    padding: var(--spacing-sm);
+  }
+
+  .page-header {
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .page-header h1 {
+    font-size: 1.1rem;
+  }
+
+  .page-header .icon {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
+
+  .page-header-stats div div {
+    margin: 0 10px;
+  }
 }

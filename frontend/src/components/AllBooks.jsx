@@ -36,7 +36,7 @@ function AllBooks() {
       {error && <Alert variant="danger">{error}</Alert>}
 
       {!loading && books.length > 0 && (
-        <div style={{ overflowX: "auto" }}>
+        <div className="table-responsive-wrapper table-mobile-cards">
           <table className="table table-striped table-hover">
             <thead>
               <tr>
@@ -48,9 +48,9 @@ function AllBooks() {
             <tbody>
               {books.map((book, index) => (
                 <tr key={book.id}>
-                  <td>{index + 1}</td>
-                  <td style={{ fontWeight: "500" }}>{book.title}</td>
-                  <td>{book.authorName}</td>
+                  <td data-label="#">{index + 1}</td>
+                  <td data-label="Title" style={{ fontWeight: "500" }}>{book.title}</td>
+                  <td data-label="Author" style={{ wordBreak: "break-word" }}>{book.authorName}</td>
                 </tr>
               ))}
             </tbody>

@@ -5,7 +5,7 @@ import { HiHome } from "react-icons/hi";
 function NotFound() {
   return (
     <div className="empty-state" style={{ minHeight: "60vh" }}>
-      <div style={{ fontSize: "6rem", fontWeight: "700", color: "var(--primary)", opacity: 0.3 }}>404</div>
+      <div className="not-found-404" style={{ fontSize: "6rem", fontWeight: "700", color: "var(--primary)", opacity: 0.3 }}>404</div>
       <h2 style={{ fontWeight: "600", color: "var(--text-primary)", marginTop: "8px" }}>Page Not Found</h2>
       <p style={{ color: "var(--text-secondary)", marginBottom: "24px" }}>
         The page you're looking for doesn't exist or has been moved.
