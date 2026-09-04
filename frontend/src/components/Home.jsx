@@ -40,19 +40,19 @@ function Home() {
 
       {data && (
         <ListGroup className="mt-3 fade-in">
-          <ListGroup.Item style={{ display: "flex", justifyContent: "space-between" }}>
+          <ListGroup.Item className="d-flex justify-content-between align-items-center flex-wrap" style={{ gap: "4px" }}>
             <span style={{ fontWeight: "600", color: "var(--text-secondary)" }}>Name</span>
-            <span style={{ fontWeight: "500" }}>{data.name}</span>
+            <span style={{ fontWeight: "500", wordBreak: "break-word" }}>{data.name}</span>
           </ListGroup.Item>
-          <ListGroup.Item style={{ display: "flex", justifyContent: "space-between" }}>
+          <ListGroup.Item className="d-flex justify-content-between align-items-center flex-wrap" style={{ gap: "4px" }}>
             <span style={{ fontWeight: "600", color: "var(--text-secondary)" }}>Email</span>
-            <span>{data.email}</span>
+            <span style={{ wordBreak: "break-all" }}>{data.email}</span>
           </ListGroup.Item>
-          <ListGroup.Item style={{ display: "flex", justifyContent: "space-between" }}>
+          <ListGroup.Item className="d-flex justify-content-between align-items-center flex-wrap" style={{ gap: "4px" }}>
             <span style={{ fontWeight: "600", color: "var(--text-secondary)" }}>Issue Date</span>
             <span>{data.libraryCardsDTO.issueDate}</span>
           </ListGroup.Item>
-          <ListGroup.Item style={{ display: "flex", justifyContent: "space-between" }}>
+          <ListGroup.Item className="d-flex justify-content-between align-items-center flex-wrap" style={{ gap: "4px" }}>
             <span style={{ fontWeight: "600", color: "var(--text-secondary)" }}>Expiry Date</span>
             <span>{data.libraryCardsDTO.expiryDate}</span>
           </ListGroup.Item>

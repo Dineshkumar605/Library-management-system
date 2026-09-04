@@ -30,7 +30,7 @@ function BookDetails() {
   );
 
   return (
-    <div className="card form-card fade-in" style={{ maxWidth: "700px" }}>
+    <div className="card form-card fade-in" style={{ maxWidth: "700px", width: "100%" }}>
       <div className="page-header">
         <div className="icon"><HiSearch size={22} /></div>
         <h1>Book Details & Reviews</h1>
@@ -54,12 +54,12 @@ function BookDetails() {
           {book.map((review) => (
             <Card key={review.id} className="mb-3 card-hover">
               <Card.Body>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
-                  <div>
-                    <div style={{ fontWeight: "600", color: "var(--text-primary)" }}>{review.booksDTO?.title}</div>
-                    <div style={{ fontSize: "0.875rem", color: "var(--text-secondary)", marginTop: "4px" }}>{review.comment}</div>
+                <div className="review-card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px", gap: "8px" }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontWeight: "600", color: "var(--text-primary)", wordBreak: "break-word" }}>{review.booksDTO?.title}</div>
+                    <div style={{ fontSize: "0.875rem", color: "var(--text-secondary)", marginTop: "4px", wordBreak: "break-word" }}>{review.comment}</div>
                   </div>
-                  <div style={{ textAlign: "right", flexShrink: 0, marginLeft: "16px" }}>
+                  <div style={{ textAlign: "right", flexShrink: 0 }}>
                     {renderStars(review.rating)}
                   </div>
                 </div>

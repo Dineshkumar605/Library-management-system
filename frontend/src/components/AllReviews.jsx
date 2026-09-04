@@ -47,7 +47,7 @@ function AllReviews() {
       {error && <Alert variant="danger">{error}</Alert>}
 
       {!loading && reviews.length > 0 && (
-        <div style={{ overflowX: "auto" }}>
+        <div className="table-responsive-wrapper table-mobile-cards">
           <table className="table table-striped table-hover">
             <thead>
               <tr>
@@ -60,10 +60,10 @@ function AllReviews() {
             <tbody>
               {reviews.map((review, index) => (
                 <tr key={review.id}>
-                  <td>{index + 1}</td>
-                  <td style={{ fontWeight: "500" }}>{review.booksDTO.title}</td>
-                  <td>{renderStars(review.rating)}</td>
-                  <td>{review.comment}</td>
+                  <td data-label="#">{index + 1}</td>
+                  <td data-label="Book" style={{ fontWeight: "500", wordBreak: "break-word" }}>{review.booksDTO.title}</td>
+                  <td data-label="Rating">{renderStars(review.rating)}</td>
+                  <td data-label="Comment" style={{ wordBreak: "break-word" }}>{review.comment}</td>
                 </tr>
               ))}
             </tbody>

@@ -121,9 +121,9 @@ function HomeScreen() {
       </div>
 
       {/* Stats */}
-      <div className="page-header-stats g-3 mb-4">
+      <div className="stat-grid mb-4">
         {statCards.map((stat) => (
-          <div className="" key={stat.label}>
+          <div key={stat.label}>
             <div
               className="card card-hover"
               style={{ padding: "20px", display: "flex", alignItems: "center", gap: "16px" }}
@@ -138,12 +138,13 @@ function HomeScreen() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  flexShrink: 0,
                 }}
               >
                 {stat.icon}
               </div>
-              <div>
-                <div style={{ fontSize: "1.75rem", fontWeight: "700", color: "var(--text-primary)" }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: "1.75rem", fontWeight: "700", color: "var(--text-primary)", lineHeight: 1.2 }}>
                   {stat.value}
                 </div>
                 <div style={{ fontSize: "0.875rem", color: "var(--text-secondary)" }}>
@@ -160,9 +161,9 @@ function HomeScreen() {
         <h3 style={{ margin: "0 0 16px", fontSize: "1.125rem", fontWeight: "600" }}>
           Quick Actions
         </h3>
-        <div className="row g-3">
+        <div className="row g-3 quick-actions-grid">
           {actions.map((action) => (
-            <div className="col-sm-6 col-lg-4 col-xl-3" key={action.to}>
+            <div className="col-12 col-sm-6 col-lg-4 col-xl-3" key={action.to}>
               <Link
                 to={action.to}
                 className="card card-hover"

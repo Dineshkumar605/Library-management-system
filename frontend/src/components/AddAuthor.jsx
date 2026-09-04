@@ -63,10 +63,10 @@ function AddAuthor() {
 
         <Form.Label style={{ fontWeight: "500" }}>Book Titles</Form.Label>
         {bookTitles.map((title, index) => (
-          <div key={index} style={{ display: "flex", gap: "8px", marginBottom: "12px", alignItems: "center" }}>
-            <Form.Control type="text" placeholder={`Book title ${index + 1}`} value={title} onChange={(e) => handleTitleChange(index, e.target.value)} style={{ backgroundColor: "var(--bg-body)" }} isInvalid={!!errors[`book_${index}`]} />
+          <div key={index} className="d-flex" style={{ gap: "8px", marginBottom: "12px", alignItems: "center", flexWrap: "nowrap" }}>
+            <Form.Control type="text" placeholder={`Book title ${index + 1}`} value={title} onChange={(e) => handleTitleChange(index, e.target.value)} style={{ backgroundColor: "var(--bg-body)", minWidth: 0 }} isInvalid={!!errors[`book_${index}`]} />
             {bookTitles.length > 1 && (
-              <button type="button" className="btn btn-outline-danger btn-sm" onClick={() => removeBook(index)} style={{ padding: "6px 10px", flexShrink: 0 }}>
+              <button type="button" className="btn btn-outline-danger btn-sm" onClick={() => removeBook(index)} style={{ padding: "6px 10px", flexShrink: 0, display: "flex", alignItems: "center" }}>
                 <HiX size={16} />
               </button>
             )}
